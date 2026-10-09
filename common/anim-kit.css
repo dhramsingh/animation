@@ -1,0 +1,109 @@
+:root { color-scheme: dark; }
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #070b17;
+  color: #eef3ff;
+  font-family: Inter, "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif;
+}
+
+.kit { max-width: 1280px; margin: 0 auto; padding: 16px; }
+
+.stage-wrap { width: 100%; }
+
+.stage {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  background: #0a0f1f;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+.ctrl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 14px 0 10px;
+}
+
+.ctrl button,
+.ctrl select {
+  background: #1b2a52;
+  color: #eef3ff;
+  border: 1px solid #2b3b66;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font: 600 15px Inter, "Segoe UI", system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.ctrl button:hover,
+.ctrl select:hover { filter: brightness(1.15); }
+
+.ctrl button:focus-visible,
+.ctrl select:focus-visible,
+.chapters button:focus-visible { outline: 2px solid #b38cff; outline-offset: 2px; }
+
+.ctrl button.play { min-width: 112px; background: #4fa3ff; color: #06101f; border-color: #4fa3ff; font-weight: 700; }
+
+.scrub { flex: 1 1 260px; accent-color: #b38cff; }
+
+.time {
+  font: 600 15px ui-monospace, Menlo, Consolas, monospace;
+  color: #a3b1d6;
+  min-width: 128px;
+  text-align: right;
+}
+
+.chapters { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 16px; }
+
+.chapters button {
+  background: transparent;
+  color: #a3b1d6;
+  border: 1px solid #2b3b66;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: 500 14px Inter, "Segoe UI", system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.chapters button.on { background: #b38cff; color: #0a0f1f; border-color: #b38cff; font-weight: 700; }
+
+.notes {
+  background: #111a33;
+  border: 1px solid #2b3b66;
+  border-radius: 14px;
+  padding: 18px 22px 20px;
+  line-height: 1.6;
+}
+
+.notes h2 { margin: 0 0 8px; font-size: 20px; }
+.notes p { margin: 8px 0; color: #c9d3ef; font-size: 16px; }
+.notes ul { margin: 8px 0; padding-left: 22px; color: #c9d3ef; font-size: 16px; }
+.notes li { margin: 4px 0; }
+.notes code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; }
+.notes pre {
+  background: #0a0f1f;
+  border: 1px solid #2b3b66;
+  padding: 12px 14px;
+  border-radius: 10px;
+  overflow-x: auto;
+  font: 14px/1.5 ui-monospace, Menlo, Consolas, monospace;
+  color: #eef3ff;
+}
+
+/* Recording / presentation mode: canvas only, edge to edge. */
+.kit.video { max-width: none; padding: 0; }
+.kit.video .ctrl,
+.kit.video .chapters,
+.kit.video .notes { display: none; }
+.kit.video .stage { border-radius: 0; box-shadow: none; }
+
+@media (max-width: 720px) {
+  .time { min-width: 0; }
+  .ctrl button { padding: 8px 10px; font-size: 14px; }
+}

@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attention 2 · Why Divide by √d_k?</title>
+<link rel="stylesheet" href="../common/anim-kit.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../common/anim-kit.js"></script>
+<script>
+(function () {
+  const { C, W, text, tex, card, arrow, line, pt, glow, pill, grid, plot, hist, lab, rich, para, measure,
+          clamp, sm, seg, fmt, mix, rng, randn, std, gpdf, divMap, seqMap } = AK;
+
+  /* ---------- seeded data (computed once) ---------- */
+  const r2 = (x) => Math.round(x * 100) / 100;
+  const RA = rng(11), RB = rng(3), RC = rng(4);
+  const Q8 = Array.from({ length: 8 }, () => r2(randn(RA)));
+  const K8 = Array.from({ length: 8 }, () => r2(randn(RA)));
+  const P8 = Q8.map((v, m) => v * K8[m]);
+  const PS = P8.reduce((acc, v) => { acc.push((acc.length ? acc[acc.length - 1] : 0) + v); return acc; }, []);
+  const SQ = Array.from({ length: 5000 }, () => randn(RB));                 // samples of one component q_m
+  const SP = Array.from({ length: 5000 }, () => randn(RC) * randn(RC));    // samples of one product q_m k_m
+  const DIMS = [4, 16, 64, 256, 1024];
+  // Measured standard deviation of q·k for random N(0,1) vectors of length d (Monte Carlo).
+  const MEAS = DIMS.map((d) => {
+    const R = rng(100 + d), vals = [];
+    for (let n = 0; n < 1500; n++) { let s = 0; for (let m = 0; m < d; m++) s += randn(R) * randn(R); vals.push(s); }
+    return std(vals);
+  });
+  const sqrtE = (x) => { const e = x / Math.LN10, ex = Math.floor(e); return { m: Math.pow(10, e - ex), ex }; };
+  const sciTex = (x) => { const s = sqrtE(x); return `${s.m.toFixed(2)}\\times10^{${s.ex}}`; };
+  const roleFill = (color) => (v) => mix('#1b2a52', color, clamp(0.3 + 0.7 * Math.abs(v) / 2));
+  const group = (c, a, fn) => { if (a <= 0) return; c.save(); c.globalAlpha *= clamp(a); fn(); c.restore(); };
+
+  AK.create({
+    host: '#app',
+    part: 'VIDEO 2 OF 4 · SCALING THE SCORE',
+    title: 'Why divide by $\\sqrt{d_k}$?',
+    scenes: [
+
+      /* ============ 1 ============ */
+      {
+        title: 'The question', dur: 10000, accent: C.acc,
+        caption: 'A dot product adds up $d_k$ products. How big does it get as $d_k$ grows, and why divide by $\\sqrt{d_k}$?',
+        notes: `<p>The attention logits are <i>S = QK<sup>T</sup> / √d<sub>k</sub></i>. The unscaled version <i>QK<sup>T</sup></i> has entries that are sums of <i>d<sub>k</sub></i> products. This video measures how that sum behaves and why the scaling is needed.</p>`,
+        draw(c, t) {
+          group(c, sm(t, 0, 900), () => tex(c, String.raw`S=\frac{QK^{\top}}{\sqrt{d_k}}`, W / 2, 190, { size: 60, align: 'center' }));
+          const qs = [
+            'Each score is a sum of $d_k$ products. How big is it?',
+            'Wider heads (larger $d_k$): does the score grow with them?',
+            'Why divide by $\\sqrt{d_k}$, and what breaks if we do not?'
+          ];
+          const cols = [C.q, C.k, C.acc];
+          qs.forEach((s, i) => {
+            const a = sm(t, 1600 + i * 1300, 2300 + i * 1300);
+            const y = 300 + i * 72;
+            group(c, a, () => {
+              card(c, 140, y, 1000, 58, { fill: C.panel, stroke: cols[i], lw: 2.5, r: 16 });
+              pt(c, 172, y + 29, 18, cols[i]);
+              text(c, String(i + 1), 172, y + 29, { size: 20, bold: true, align: 'center', color: C.ink });
+              rich(c, s, 206, y + 29, { size: 25 });
+            });
+          });
+          [4, 16, 64, 256, 1024].forEach((d, i) => {
+            const a = sm(t, 6000 + i * 350, 6600 + i * 350);
+            group(c, a, () => pill(c, `d_k = ${d}`, 170 + i * 200, 540, { size: 24, fill: C.panel2, stroke: C.line, lw: 2, h: 52, padX: 26 }));
+          });
+          group(c, sm(t, 7800, 8600), () => text(c, 'wider heads → bigger dot products?', W / 2, 590, { size: 22, color: C.dim, align: 'center' }));
+        }
+      },
+
+      /* ============ 2 ============ */
+      {
+        title: 'A dot product is a sum of $d_k$ products', dur: 14000, accent: C.q,
+        caption: 'The dot product $q\\cdot k$ is a running sum of $d_k$ products. Each product adds a random ± contribution, so the sum wanders.',
+        notes: `<p><b>Random walk.</b> With <i>d<sub>k</sub> = 8</i> the eight products <i>q<sub>m</sub>k<sub>m</sub></i> are added one by one. Positive products push the partial sum up, negative ones push it down. The final value is <i>q·k</i>. The numbers are drawn from a standard normal, the typical distribution of entries at initialization.</p>`,
+        draw(c, t) {
+          const m = Math.min(8, Math.floor(seg(t, 1500, 9000) * 8.999));   // products revealed so far
+          const ymax = Math.max(3, Math.ceil(Math.max(...PS.map(Math.abs)) + 0.5));
+          text(c, 'q', 96, 172, { size: 26, bold: true, align: 'right', color: C.q });
+          text(c, 'k', 96, 232, { size: 26, bold: true, align: 'right', color: C.k });
+          tex(c, String.raw`q_m k_m`, 96, 292, { size: 26, align: 'right', color: C.teal });
+          grid(c, [Q8], 120, 150, 84, 46, { max: 2, d: 2, size: 20, cmap: roleFill(C.q), ink: () => C.text });
+          grid(c, [K8], 120, 210, 84, 46, { max: 2, d: 2, size: 20, cmap: roleFill(C.k), ink: () => C.text });
+          grid(c, [P8], 120, 270, 84, 46, {
+            max: 2, d: 2, size: 20, pos: C.teal, neg: C.hot,
+            show: (_, j) => (j < m ? 1 : 0)
+          });
+          // Running-sum plot
+          const pl = plot(c, 830, 170, 370, 300, {
+            xmin: 0, xmax: 8, ymin: -ymax, ymax: ymax, xt: [0, 2, 4, 6, 8], yt: [-ymax, 0, ymax],
+            xlabel: 'terms added', ylabel: 'partial sum'
+          });
+          const pts = [[pl.X(0), pl.Y(0)]];
+          for (let k = 1; k <= m; k++) pts.push([pl.X(k), pl.Y(PS[k - 1])]);
+          line(c, pts, { color: C.gold, lw: 4 });
+          pts.forEach(([x, y], k) => pt(c, x, y, 6, C.gold));
+          const cur = m > 0 ? PS[m - 1] : 0;
+          text(c, `partial sum after ${m} of 8 terms = ${fmt(cur, 2)}`, 120, 362, { size: 24, color: C.text });
+          group(c, sm(t, 9200, 10000), () => {
+            tex(c, String.raw`q\cdot k=\sum_{m=1}^{8} q_m k_m = ${fmt(PS[7], 2)}`, 120, 430, { size: 36, anchor: 'mid' });
+            para(c, 'Each term is a product of two random numbers: sometimes positive, sometimes negative, mean zero.', 120, 470, 660, { size: 22, color: C.dim, lh: 32 });
+          });
+          group(c, sm(t, 10500, 11500), () => {
+            tex(c, String.raw`q\cdot k=\sum_{m=1}^{d_k} q_m k_m`, 120, 560, { size: 34, anchor: 'mid', color: C.teal });
+          });
+        }
+      },
+
+      /* ============ 3 ============ */
+      {
+        title: 'Assumption: unit variance per component', dur: 13000, accent: C.teal,
+        caption: 'Assume each component of $q$ and $k$ is independent, with mean $0$ and variance $1$. A standard initialization makes this approximately true.',
+        notes: `<p><b>Where this comes from.</b> If the input <i>x</i> has unit-variance entries and <i>W<sub>Q</sub></i> entries are drawn with variance 1/d<sub>model</sub>, then <i>q<sub>m</sub> = Σ<sub>i</sub> x<sub>i</sub> W<sub>im</sub></i> has variance <i>d<sub>model</sub> · 1 · (1/d<sub>model</sub>) = 1</i>. LayerNorm on the inputs keeps the same scale. The same holds for <i>k</i>.</p>`,
+        draw(c, t) {
+          const pl = plot(c, 90, 200, 520, 300, {
+            xmin: -4, xmax: 4, ymin: 0, ymax: 0.5, xt: [-4, -2, 0, 2, 4], yt: [0, 0.25, 0.5],
+            xlabel: '\\text{value of }q_m'
+          });
+          group(c, sm(t, 500, 2000), () => hist(c, SQ, 90, 200, 520, 300, { lo: -4, hi: 4, bins: 48, dmax: 0.5, color: C.q, normal: { mu: 0, sd: 1 }, ncolor: C.gold }));
+          const m = SQ.reduce((a, b) => a + b, 0) / SQ.length;
+          const v = SQ.reduce((a, b) => a + (b - m) ** 2, 0) / SQ.length;
+          group(c, sm(t, 2600, 3200), () => {
+            tex(c, String.raw`\text{5000 samples of }q_m\text{, with the curve }N(0,1)`, 90, 160, { size: 22, color: C.dim, anchor: 'mid' });
+          });
+          group(c, sm(t, 4000, 4800), () => {
+            text(c, `measured: mean ${fmt(m, 3)},  variance ${fmt(v, 3)}`, 90, 580, { size: 22, color: C.gold, bold: true });
+          });
+          group(c, sm(t, 4800, 5600), () => {
+            tex(c, String.raw`\mathbb{E}[q_m]=\mathbb{E}[k_m]=0,\qquad \mathrm{Var}(q_m)=\mathrm{Var}(k_m)=1`, 660, 210, { size: 30, anchor: 'mid' });
+          });
+          group(c, sm(t, 6400, 7200), () => {
+            card(c, 640, 262, 580, 170, { fill: C.panel, stroke: C.line, lw: 2, r: 16 });
+            para(c, 'Why it holds at initialization: the inputs are normalized to unit variance, and the weights are drawn with variance 1 divided by the model width. Each component is then a sum of model-width terms, each of variance 1 over the model width, so its variance is 1.', 668, 280, 530, { size: 21, color: C.dim, lh: 30 });
+          });
+          group(c, sm(t, 9000, 9800), () => {
+            para(c, 'Independence means the products and sums that follow have variances that simply add.', 660, 470, 560, { size: 22, color: C.text, lh: 32 });
+          });
+        }
+      },
+
+      /* ============ 4 ============ */
+      {
+        title: 'One product: mean 0, variance 1', dur: 14000, accent: C.k,
+        caption: 'For one product, the mean is $0$ and the variance is $\\mathbb{E}[q^2]\\,\\mathbb{E}[k^2]=1\\cdot1=1$. The derivation appears step by step.',
+        notes: `<p><b>Variance of a product of independent zero-mean variables.</b> <i>Var(XY) = E[X²]E[Y²] − (E[X]E[Y])²</i>. With <i>E[X]=E[Y]=0</i> and <i>E[X²]=E[Y²]=1</i> this gives 1. The histogram on the left is the empirical distribution of 5000 products; its spread is about 1, even though its shape is not Gaussian.</p>`,
+        draw(c, t) {
+          plot(c, 90, 200, 520, 300, {
+            xmin: -5, xmax: 5, ymin: 0, ymax: 1.2, xt: [-4, -2, 0, 2, 4], yt: [0, 0.6, 1.2],
+            xlabel: '\\text{value of }q_m k_m'
+          });
+          // ±1 standard deviation band
+          const X = (v) => 90 + ((v + 5) / 10) * 520;
+          group(c, sm(t, 400, 1200), () => { card(c, X(-1), 200, X(1) - X(-1), 300, { fill: 'rgba(255,209,102,0.10)', r: 0 }); });
+          group(c, sm(t, 400, 1200), () => text(c, '±1 σ band', X(0), 186, { size: 18, color: C.gold, align: 'center' }));
+          group(c, sm(t, 500, 2200), () => hist(c, SP, 90, 200, 520, 300, { lo: -5, hi: 5, bins: 60, dmax: 1.2, color: C.k }));
+          const mu = SP.reduce((a, b) => a + b, 0) / SP.length;
+          const vr = SP.reduce((a, b) => a + (b - mu) ** 2, 0) / SP.length;
+          group(c, sm(t, 4000, 4800), () => text(c, `Monte-Carlo check: mean ${fmt(mu, 3)}, variance ${fmt(vr, 3)}`, 90, 584, { size: 22, color: C.gold, bold: true }));
+          const steps = [
+            { y: 214, f: String.raw`\mathbb{E}[q_m k_m]=\mathbb{E}[q_m]\,\mathbb{E}[k_m]=0`, at: 1800 },
+            { y: 300, f: String.raw`\mathrm{Var}(q_m k_m)=\mathbb{E}[q_m^2]\,\mathbb{E}[k_m^2]-\big(\mathbb{E}[q_m]\,\mathbb{E}[k_m]\big)^2`, at: 5200 },
+            { y: 384, f: String.raw`=1\cdot 1-0^2=1`, at: 9000 }
+          ];
+          steps.forEach((s) => group(c, sm(t, s.at, s.at + 700), () => tex(c, s.f, 660, s.y, { size: 27, anchor: 'mid' })));
+          group(c, sm(t, 10500, 11300), () => {
+            para(c, 'The components of q and k are independent, so the mean of the squared product factorizes into the product of the two second moments.', 660, 440, 560, { size: 22, color: C.dim, lh: 32 });
+          });
+          group(c, sm(t, 12000, 12800), () => tex(c, String.raw`\sigma_{q_m k_m}=1`, 660, 520, { size: 36, anchor: 'mid', color: C.gold }));
+        }
+      },
+
+      /* ============ 5 ============ */
+      {
+        title: 'Sum of $d_k$ terms: variances add', dur: 16000, accent: C.v,
+        caption: 'Independent terms add their variances. So $q\\cdot k$ has variance $d_k$ and standard deviation $\\sqrt{d_k}$: bigger heads, bigger logits.',
+        notes: `<p><b>Variance of a sum of independent terms.</b> <i>Var(Σ<sub>m</sub> Z<sub>m</sub>) = Σ<sub>m</sub> Var(Z<sub>m</sub>)</i>. Each product has variance 1, so the dot product over <i>d<sub>k</sub></i> terms has variance <i>d<sub>k</sub></i>. The table compares the theoretical <i>√d<sub>k</sub></i> with a Monte-Carlo estimate from random Gaussian vectors.</p>`,
+        draw(c, t) {
+          const u = seg(t, 1200, 12000) * 3;                     // slides d from 4 to 256
+          const d = 4 * Math.pow(4, u);
+          const sd = Math.sqrt(d);
+          const pl = plot(c, 90, 180, 640, 320, {
+            xmin: -60, xmax: 60, ymin: 0, ymax: 0.25, xt: [-60, -30, 0, 30, 60], yt: [0, 0.1, 0.2],
+            xlabel: 'value of q·k', ylabel: 'density'
+          });
+          // Reference curves for the discrete values
+          [[4, C.teal], [16, C.gold], [64, C.q], [256, C.acc]].forEach(([dd, col]) => {
+            const pts = [];
+            for (let k = 0; k <= 300; k++) { const x = -60 + (120 * k) / 300; pts.push([pl.X(x), pl.Y(gpdf(x, 0, Math.sqrt(dd)))]); }
+            group(c, sm(t, 800, 1200), () => AK.line(c, pts, { color: col, lw: 2, alpha: 0.45, dash: [6, 6] }));
+          });
+          // Live curve for the current d_k
+          const pts = [];
+          for (let k = 0; k <= 300; k++) { const x = -60 + (120 * k) / 300; pts.push([pl.X(x), pl.Y(gpdf(x, 0, sd))]); }
+          const base = pl.Y(0);
+          c.save();
+          c.fillStyle = 'rgba(79,163,255,0.22)';
+          c.beginPath(); c.moveTo(pl.X(-60), base); pts.forEach(([x, y]) => c.lineTo(x, y)); c.lineTo(pl.X(60), base); c.closePath(); c.fill();
+          c.restore();
+          AK.line(c, pts, { color: C.q, lw: 4 });
+          lab(c, `d_k = ${Math.round(d)}`, pl.X(0) + 14, pl.Y(0.22), { size: 26, align: 'left', color: C.q });
+          lab(c, `\\sigma=\\sqrt{d_k}=${fmt(sd, 1)}`, pl.X(0) + 14, pl.Y(0.19), { size: 22, align: 'left', color: C.dim });
+          // Table of theory vs Monte Carlo
+          group(c, sm(t, 2000, 2600), () => {
+            rich(c, '$d_k$', 790, 196, { size: 22, color: C.dim });
+            rich(c, '$\\sqrt{d_k}$ (theory)', 880, 196, { size: 22, color: C.dim });
+            text(c, 'measured σ', 1080, 196, { size: 22, bold: true, color: C.dim });
+          });
+          DIMS.forEach((dd, i) => {
+            const a = sm(t, 3000 + i * 1400, 3600 + i * 1400);
+            const y = 240 + i * 52;
+            group(c, a, () => {
+              card(c, 770, y - 22, 450, 44, { fill: C.panel2, r: 10 });
+              text(c, String(dd), 790, y, { size: 24, bold: true });
+              text(c, fmt(Math.sqrt(dd), 1), 880, y, { size: 24, color: C.gold });
+              text(c, fmt(MEAS[i], 1), 1080, y, { size: 24, color: C.teal });
+            });
+          });
+          group(c, sm(t, 9800, 10600), () => {
+            tex(c, String.raw`\mathrm{Var}(q\cdot k)=\sum_{m=1}^{d_k}\mathrm{Var}(q_m k_m)=d_k`, 790, 510, { size: 26, anchor: 'mid' });
+          });
+          group(c, sm(t, 11500, 12300), () => {
+            tex(c, String.raw`\sigma_{q\cdot k}=\sqrt{d_k}`, 790, 556, { size: 30, anchor: 'mid', color: C.gold });
+          });
+        }
+      },
+
+      /* ============ 6 ============ */
+      {
+        title: 'Dividing by $\\sqrt{d_k}$ restores unit variance', dur: 14000, accent: C.gold,
+        caption: 'Dividing by $\\sqrt{d_k}$ rescales each head back to unit variance, so the logits have the same scale whatever the head size.',
+        notes: `<p><b>The fix.</b> <i>Var(q·k / √d<sub>k</sub>) = d<sub>k</sub> / d<sub>k</sub> = 1</i>. Each curve in the animation is the density of <i>q·k</i> for one head size. The axis zooms in as the scaling is applied; by the end, every head size produces the same distribution, N(0,1).</p>`,
+        draw(c, t) {
+          const u = sm(t, 3500, 9500);
+          const xr = AK.lerp(60, 4, u);
+          const ticks = xr > 20 ? [-60, -30, 0, 30, 60] : xr > 8 ? [-16, -8, 0, 8, 16] : [-4, -2, 0, 2, 4];
+          const pl = plot(c, 90, 200, 640, 290, {
+            xmin: -xr, xmax: xr, ymin: 0, ymax: 0.5, xt: ticks, yt: [0, 0.25, 0.5],
+            xlabel: u < 0.5 ? 'raw score q·k' : '\\text{scaled score }\\dfrac{q\\cdot k}{\\sqrt{d_k}}'
+          });
+          const heads = [[4, C.teal], [16, C.gold], [64, C.q], [256, C.acc]];
+          heads.forEach(([d, col], i) => {
+            const s = AK.lerp(Math.sqrt(d), 1, u);          // standard deviation morphs to 1
+            const pts = [];
+            for (let k = 0; k <= 300; k++) { const x = -xr + (2 * xr * k) / 300; pts.push([pl.X(x), pl.Y(gpdf(x, 0, s))]); }
+            c.save(); c.fillStyle = col; c.globalAlpha = 0.12;
+            c.beginPath(); c.moveTo(pl.X(-xr), pl.Y(0)); pts.forEach(([x, y]) => c.lineTo(x, y)); c.lineTo(pl.X(xr), pl.Y(0)); c.closePath(); c.fill(); c.restore();
+            AK.line(c, pts, { color: col, lw: 3.5 });
+            group(c, sm(t, 500 + i * 300, 1000 + i * 300), () => {
+              card(c, 110 + i * 160, 150, 140, 30, { fill: C.panel2, stroke: col, lw: 2, r: 9 });
+              lab(c, `d_k = ${d}`, 180 + i * 160, 165, { size: 18, color: col });
+            });
+          });
+          group(c, sm(t, 6000, 6800), () => {
+            para(c, 'Before: $\\sigma=\\sqrt{d_k}$, that is 2, 4, 8 and 16 for $d_k$ = 4, 16, 64, 256.', 770, 418, 450, { size: 22, color: C.dim, lh: 30 });
+          });
+          group(c, sm(t, 9600, 10400), () => {
+            para(c, 'After: $\\sigma=1$ for every head size.', 770, 486, 450, { size: 22, color: C.gold, bold: true, lh: 30 });
+          });
+          group(c, sm(t, 10400, 11200), () => {
+            tex(c, String.raw`\mathrm{Var}\left(\frac{q\cdot k}{\sqrt{d_k}}\right)=\frac{d_k}{d_k}=1`, 800, 236, { size: 32, anchor: 'mid' });
+          });
+          group(c, sm(t, 11600, 12400), () => {
+            para(c, 'Same scale for every head: the softmax sees logits of comparable size whether $d_k$ is 4 or 1024.', 770, 290, 450, { size: 22, color: C.text, lh: 32 });
+          });
+        }
+      },
+
+      /* ============ 7 ============ */
+      {
+        title: 'Why scale matters: softmax exponentiates', dur: 14000, accent: C.hot,
+        caption: 'Softmax takes $e$ to the power of each logit. A logit at $3\\sigma=96$ means $e^{96}\\approx10^{42}$. Naive float32 $\\exp$ overflows above $88.7$.',
+        notes: `<p><b>Magnitude check.</b> Unscaled, a logit typically sits within about ±3σ = ±3√d<sub>k</sub> of zero. For d<sub>k</sub> = 1024 that is ±96. Softmax computes e<sup>z</sup>, so the ratio between a logit at 96 and one at 0 is e<sup>96</sup> ≈ 5·10<sup>41</sup>. In float32, exp overflows to infinity above about 88.72. Production code subtracts the maximum first, but the saturation problem remains (next video).</p>`,
+        draw(c, t) {
+          const scale = { x0: 90, x1: 1190, y: 260 };
+          const X = (v) => scale.x0 + (v / 110) * (scale.x1 - scale.x0);
+          line(c, [[X(0), scale.y], [X(110), scale.y]], { color: C.dim, lw: 3 });
+          [0, 20, 40, 60, 80, 100].forEach((v) => {
+            line(c, [[X(v), scale.y - 8], [X(v), scale.y + 8]], { color: C.dim, lw: 2 });
+            text(c, String(v), X(v), scale.y + 30, { size: 18, color: C.dim, align: 'center' });
+          });
+          rich(c, 'logit value $z$ (unscaled)', 90, 214, { size: 22, color: C.text });
+          const rows = [[64, C.q], [256, C.k], [1024, C.acc]];
+          rows.forEach(([d, col], i) => {
+            const a = sm(t, 800 + i * 1200, 1600 + i * 1200);
+            const sd3 = 3 * Math.sqrt(d);
+            group(c, a, () => {
+              pt(c, X(sd3), scale.y, 12, col);
+              lab(c, `d_k=${d}:\\;3\\sigma=${fmt(sd3, 0)}`, X(sd3) + (i === 2 ? -18 : 18), scale.y - 40 - i * 0, { size: 22, align: i === 2 ? 'right' : 'left', color: col });
+            });
+          });
+          // Overflow line
+          const ov = sm(t, 5000, 5800);
+          group(c, ov, () => {
+            c.save(); c.strokeStyle = C.hot; c.lineWidth = 3; c.setLineDash([8, 8]);
+            c.beginPath(); c.moveTo(X(88.7), 160); c.lineTo(X(88.7), 330); c.stroke(); c.restore();
+            text(c, 'float32: exp(z) overflows above z ≈ 88.7', X(88.7) - 14, 160, { size: 20, bold: true, color: C.hot, align: 'right' });
+          });
+          // Table of exponentials
+          const rowsT = [[24, C.q], [48, C.k], [96, C.acc]];
+          group(c, sm(t, 6400, 7200), () => rich(c, 'what softmax computes: $e^{z}$', 90, 380, { size: 24, bold: true, color: C.text }));
+          rowsT.forEach(([z, col], i) => {
+            const a = sm(t, 7000 + i * 800, 7800 + i * 800);
+            group(c, a, () => {
+              card(c, 90, 410 + i * 62, 760, 50, { fill: C.panel2, r: 12 });
+              tex(c, String.raw`e^{${z}}\approx ${sciTex(z)}`, 120, 435 + i * 62, { size: 26, anchor: 'mid', color: col });
+            });
+          });
+          group(c, sm(t, 10000, 10800), () => {
+            card(c, 900, 380, 290, 150, { fill: 'rgba(255,107,107,0.10)', stroke: C.hot, lw: 2.5, r: 16 });
+            text(c, 'One big logit', 1045, 412, { size: 24, bold: true, align: 'center', color: C.hot });
+            text(c, 'takes almost all', 1045, 442, { size: 22, align: 'center', color: C.text });
+            text(c, 'the probability mass.', 1045, 470, { size: 22, align: 'center', color: C.text });
+          });
+          group(c, sm(t, 11400, 12200), () => {
+            tex(c, String.raw`\text{ratio } \frac{e^{96}}{e^{0}}=e^{96}\approx ${sciTex(96)}`, 900, 556, { size: 24, anchor: 'mid' });
+          });
+        }
+      },
+
+      /* ============ 8 ============ */
+      {
+        title: 'Recap: the scaling factor', dur: 10000, accent: C.v,
+        caption: 'Dot products have variance $d_k$. Dividing by $\\sqrt{d_k}$ restores unit variance and keeps logits $O(1)$, so softmax stays in its useful range.',
+        notes: `<p><b>Summary.</b> <i>Var(q·k) = d<sub>k</sub></i>, so the standard deviation is <i>√d<sub>k</sub></i>. Dividing by <i>√d<sub>k</sub></i> gives unit variance for every head size. Keeping logits at O(1) prevents softmax from saturating. The next video shows exactly how saturation kills the gradient.</p>`,
+        draw(c, t) {
+          const items = [
+            { a: 300, t: 'Raw dot products have variance $d_k$', f: String.raw`\mathrm{Var}(q\cdot k)=d_k,\quad \sigma=\sqrt{d_k}`, col: C.hot },
+            { a: 2600, t: 'Dividing by $\\sqrt{d_k}$ fixes the scale', f: String.raw`\mathrm{Var}\left(\frac{q\cdot k}{\sqrt{d_k}}\right)=1`, col: C.gold },
+            { a: 5000, t: 'Logits stay $O(1)$, so softmax stays useful', f: String.raw`\mathrm{softmax}\left(\frac{QK^{\top}}{\sqrt{d_k}}\right)`, col: C.v }
+          ];
+          items.forEach((it, i) => {
+            const a = sm(t, it.a, it.a + 800);
+            const y = 170 + i * 130;
+            group(c, a, () => {
+              card(c, 120, y, 1040, 110, { fill: C.panel, stroke: it.col, lw: 2.5, r: 18 });
+              pt(c, 160, y + 55, 24, it.col);
+              text(c, '✓', 160, y + 56, { size: 26, bold: true, align: 'center', color: C.ink });
+              rich(c, it.t, 210, y + 36, { size: 26, color: it.col, bold: true });
+              tex(c, it.f, 210, y + 76, { size: 28, anchor: 'mid' });
+            });
+          });
+          group(c, sm(t, 8200, 9000), () => {
+            text(c, 'Next: what happens to softmax gradients when the logits are NOT scaled?', W / 2, 580, { size: 24, color: C.acc, bold: true, align: 'center' });
+          });
+        }
+      }
+    ]
+  });
+})();
+</script>
+</body>
+</html>

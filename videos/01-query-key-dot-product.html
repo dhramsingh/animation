@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attention 1 · The Query–Key Dot Product</title>
+<link rel="stylesheet" href="../common/anim-kit.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../common/anim-kit.js"></script>
+<script>
+(function () {
+  const { C, W, text, tex, card, arrow, line, pt, glow, flowDot, pill, block, grid, hbars, lab, para, measure,
+          clamp, sm, seg, fmt, mix, matmul, transpose, vdot, softmax, norm, divMap, seqMap } = AK;
+
+  /* ---------- toy numbers (illustrative, d_k = 4) ---------- */
+  const TOKENS = ['animal', 'street', 'it', 'was', 'tired'];
+  const Q = [[0.3, 0.9, 0.1, 0.2], [0.1, 0.2, 0.8, 0.1], [1.2, 0.4, -0.3, 0.9], [0.2, 0.5, 0.4, 0.3], [0.6, 0.1, 0.5, -0.2]];
+  const K = [[1.1, 0.5, -0.2, 0.8], [-0.4, 1.0, 0.7, -0.1], [0.2, -0.3, 0.6, 0.1], [0.1, 0.4, 0.0, 0.5], [0.6, -0.2, 0.1, 0.3]];
+  const V = [[1.0, 0.0, 0.2, 0.0], [0.0, 1.0, 0.0, 0.3], [0.3, 0.3, 0.3, 0.3], [0.0, 0.2, 0.9, 0.0], [0.2, 0.0, 0.0, 1.0]];
+  const S = matmul(Q, transpose(K));                  // 5 x 5 score matrix
+  const A = S.map((row) => softmax(row));             // row-wise weights
+  const SENT = ['The', 'animal', "didn't", 'cross', 'the', 'street', 'because', 'it', 'was', 'too', 'tired'];
+
+  // Point on a quadratic Bézier curve.
+  const qpt = (P0, P1, P2, s) => [
+    (1 - s) * (1 - s) * P0[0] + 2 * (1 - s) * s * P1[0] + s * s * P2[0],
+    (1 - s) * (1 - s) * P0[1] + 2 * (1 - s) * s * P1[1] + s * s * P2[1]
+  ];
+  // Draw a group with a common opacity.
+  function group(c, a, fn) { if (a <= 0) return; c.save(); c.globalAlpha *= clamp(a); fn(); c.restore(); }
+  const roleFill = (color) => (v, i, j) => mix('#1b2a52', color, clamp(0.3 + 0.7 * Math.abs(v) / 1.3));
+
+  AK.create({
+    host: '#app',
+    part: 'VIDEO 1 OF 4 · THE ATTENTION SCORE',
+    title: 'The Query–Key dot product',
+    scenes: [
+
+      /* ============ 1 ============ */
+      {
+        title: 'Every token asks a question', dur: 13000, accent: C.q,
+        caption: 'Each token asks a question (its Query) and advertises what it contains (its Key). Attention matches questions with advertisements.',
+        notes: `<p><b>Setting.</b> A sequence of <i>n</i> tokens. Each token <i>i</i> is turned into a Query <i>q<sub>i</sub></i> (what it is looking for) and a Key <i>k<sub>i</sub></i> (what it offers). A Value <i>v<sub>i</sub></i> carries the content that is handed over when it is attended to.</p>`,
+        draw(c, t) {
+          const size = 24, gap = 12;
+          const widths = SENT.map((w) => measure(w, size) + 40);
+          const totalW = widths.reduce((a, b) => a + b, 0) + gap * (SENT.length - 1);
+          let x = (W - totalW) / 2; const cy = 232, xs = [];
+          SENT.forEach((w, i) => {
+            const cx = x + widths[i] / 2; xs.push(cx);
+            const a = sm(t, 150 + i * 110, 600 + i * 110);
+            const isIt = w === 'it';
+            pill(c, w, cx, cy + (1 - a) * 16, { size, fill: isIt ? '#3b3160' : C.panel2, stroke: isIt ? C.gold : null, lw: 3, alpha: a, bold: isIt });
+            x += widths[i] + gap;
+          });
+          const xIt = xs[7];
+          // The Query bubble under "it".
+          const bubbleA = sm(t, 2600, 3200);
+          arrow(c, xIt, cy + 20, xIt, 300, { color: C.q, lw: 3, alpha: bubbleA });
+          group(c, bubbleA, () => {
+            card(c, xIt - 230, 300, 460, 66, { fill: '#14244a', stroke: C.q, lw: 2.5, r: 16 });
+            tex(c, String.raw`\textcolor{q}{\text{Query: what am I looking for?}}`, xIt, 333, { size: 25, align: 'center' });
+          });
+          // Key badges: what each token advertises.
+          const badges = { animal: 'noun', street: 'noun', was: 'verb', tired: 'adjective' };
+          SENT.forEach((w, i) => {
+            if (!badges[w]) return;
+            const a = sm(t, 6000 + i * 180, 6500 + i * 180);
+            group(c, a, () => {
+              const bw = pill(c, badges[w], xs[i], cy + 46, { size: 17, fill: '#4a3514', stroke: C.k, lw: 2, h: 30, padX: 12, color: C.k });
+            });
+          });
+          // Probe arcs from "it" to every other token.
+          const arcA = sm(t, 8000, 8600);
+          SENT.forEach((w, i) => {
+            if (i === 7) return;
+            const P0 = [xIt, cy - 18], P2 = [xs[i], cy - 18], P1 = [(xIt + xs[i]) / 2, cy - 130];
+            group(c, arcA, () => {
+              c.save(); c.strokeStyle = C.faint; c.lineWidth = 2; c.setLineDash([5, 6]);
+              c.beginPath(); c.moveTo(...P0); c.quadraticCurveTo(P1[0], P1[1], P2[0], P2[1]); c.stroke(); c.restore();
+            });
+            const s = seg(t, 8400 + i * 140, 9600 + i * 140);
+            if (s > 0 && s < 1) { const [px, py] = qpt(P0, P1, P2, s); glow(c, px, py, 22, C.q, 0.6); pt(c, px, py, 6, C.q); }
+          });
+          // Final note.
+          group(c, sm(t, 10500, 11200), () => {
+            text(c, 'Queries ask.  Keys advertise.  Attention = matching.', W / 2, 560, { size: 28, bold: true, align: 'center', color: C.gold });
+          });
+        }
+      },
+
+      /* ============ 2 ============ */
+      {
+        title: 'One embedding, three learned roles', dur: 13000, accent: C.k,
+        caption: 'One embedding x is projected three ways: Q asks, K advertises, V carries content. Each projection is a learned matrix.',
+        notes: `<p>The same embedding <i>x<sub>i</sub></i> is multiplied by three different learned matrices: <i>q<sub>i</sub> = x<sub>i</sub>W<sub>Q</sub></i>, <i>k<sub>i</sub> = x<sub>i</sub>W<sub>K</sub></i>, <i>v<sub>i</sub> = x<sub>i</sub>W<sub>V</sub></i>. The toy vectors shown are the ones used in the rest of this video.</p>`,
+        draw(c, t) {
+          const x8 = [0.8, -0.3, 0.5, 0.1, -0.6, 0.9, 0.2, -0.4];
+          const a0 = sm(t, 0, 600);
+          pill(c, 'it', 120, 262, { size: 26, fill: '#3b3160', stroke: C.gold, lw: 3, bold: true, alpha: a0 });
+          arrow(c, 170, 262, 226, 262, { color: C.gold, lw: 3, alpha: a0 });
+          text(c, 'embedding', 260, 150, { size: 20, align: 'center', color: C.dim, alpha: a0 });
+          lab(c, 'x_{it}', 260, 128 + 4, { size: 26, alpha: a0 });
+          grid(c, x8.map((v) => [v]), 232, 166, 56, 24, { max: 1, d: 1, size: 14, show: () => a0, cmap: (v) => mix('#1b2a52', C.gold, clamp(0.25 + 0.75 * Math.abs(v))), ink: () => C.text });
+
+          const blocks = [
+            { y: 150, name: 'Query projection', sub: 'W_Q', color: C.q, vec: Q[2], sym: 'q_{it}', label: 'Q: what am I looking for?' },
+            { y: 270, name: 'Key projection', sub: 'W_K', color: C.k, vec: K[2], sym: 'k_{it}', label: 'K: what do I offer?' },
+            { y: 390, name: 'Value projection', sub: 'W_V', color: C.v, vec: V[2], sym: 'v_{it}', label: 'V: what content do I carry?' }
+          ];
+          blocks.forEach((b, i) => {
+            const a = sm(t, 900 + i * 500, 1500 + i * 500);
+            const cy = b.y + 42;
+            // Fan-out arrow from the embedding.
+            arrow(c, 296, 262, 336, cy, { color: b.color, lw: 3, alpha: a, head: 12 });
+            group(c, a, () => block(c, 340, b.y, 240, 84, b.name, { sub: b.sub, bar: b.color, size: 22, ssize: 22, stroke: b.color, lw: 2.5 }));
+            const ob = sm(t, 2600 + i * 500, 3200 + i * 500);
+            arrow(c, 586, cy, 630, cy, { color: b.color, lw: 3, alpha: ob });
+            group(c, ob, () => {
+              lab(c, b.sym, 640, b.y - 6, { size: 26, align: 'left', color: b.color });
+              grid(c, [b.vec], 636, cy - 22, 62, 44, { max: 1.3, d: 2, size: 17, cmap: roleFill(b.color), ink: () => C.text, show: () => 1 });
+              text(c, b.label, 912, cy, { size: 22, color: C.text });
+            });
+          });
+          group(c, sm(t, 4800, 5600), () => {
+            tex(c, String.raw`q_{it}=x_{it}W_Q,\qquad k_{it}=x_{it}W_K,\qquad v_{it}=x_{it}W_V`, W / 2, 552, { size: 32, align: 'center' });
+          });
+        }
+      },
+
+      /* ============ 3 ============ */
+      {
+        title: 'The dot product measures alignment', dur: 15000, accent: C.acc,
+        caption: 'Dot product means alignment: large and positive when vectors point the same way, zero at right angles, negative when they oppose.',
+        notes: `<p><b>Definition.</b> For vectors of length <i>d<sub>k</sub></i>, the dot product is the sum of elementwise products. Geometrically it equals the length of one vector times the length of the projection of the other onto it: <i>q·k = ‖q‖‖k‖cos θ</i>. The magnitude of the score therefore depends on both lengths, and its sign tells whether the two vectors agree or disagree.</p>`,
+        draw(c, t) {
+          const qv = [1.6, 0.9];                     // in 2D for the picture
+          const kMag = 1.2, U = 120, O = { x: 330, y: 404 };
+          const qMag = norm(qv), aq = Math.atan2(qv[1], qv[0]);
+          const th = 2 * Math.PI * sm(t, 2000, 14000);
+          const cs = Math.cos(th);
+          // Axes
+          line(c, [[O.x - 290, O.y], [O.x + 340, O.y]], { color: C.line, lw: 2 });
+          line(c, [[O.x, O.y + 150], [O.x, O.y - 270]], { color: C.line, lw: 2 });
+          // q (fixed)
+          const qx = O.x + qv[0] * U, qy = O.y - qv[1] * U;
+          arrow(c, O.x, O.y, qx, qy, { color: C.q, lw: 7, head: 24, alpha: sm(t, 300, 900) });
+          group(c, sm(t, 300, 900), () => tex(c, String.raw`\textcolor{q}{\mathbf{q}}`, qx + 18, qy - 18, { size: 34 }));
+          // k (rotates relative to q)
+          const kAng = aq + th;
+          const kx = O.x + Math.cos(kAng) * kMag * U, ky = O.y - Math.sin(kAng) * kMag * U;
+          arrow(c, O.x, O.y, kx, ky, { color: C.k, lw: 7, head: 24, alpha: sm(t, 800, 1400) });
+          group(c, sm(t, 800, 1400), () => tex(c, String.raw`\textcolor{k}{\mathbf{k}}`, kx + (cs > -0.2 ? 20 : -26), ky - 16, { size: 34 }));
+          // Projection of k onto q: the "shadow" of length |k| cos(theta).
+          const ux = Math.cos(aq), uy = -Math.sin(aq);
+          const proj = kMag * cs * U;
+          const fx = O.x + ux * proj, fy = O.y + uy * proj;
+          line(c, [[kx, ky], [fx, fy]], { color: C.faint, lw: 2.5, dash: [7, 7] });
+          line(c, [[O.x, O.y], [fx, fy]], { color: cs >= 0 ? C.v : C.hot, lw: 9, alpha: 0.75 });
+          pt(c, fx, fy, 6, cs >= 0 ? C.v : C.hot);
+          // Angle arc
+          c.save(); c.strokeStyle = C.gold; c.lineWidth = 3;
+          c.beginPath(); c.arc(O.x, O.y, 70, Math.min(-aq, -kAng), Math.max(-aq, -kAng)); c.stroke(); c.restore();
+          const mid = -(aq + kAng) / 2;
+          tex(c, String.raw`\theta`, O.x + Math.cos(mid) * 92, O.y + Math.sin(mid) * 92, { size: 30, color: C.gold, align: 'center' });
+
+          // Right panel: formulas and gauge
+          group(c, sm(t, 500, 1200), () => {
+            tex(c, String.raw`\mathbf{q}\cdot\mathbf{k}=\sum_{m=1}^{d_k} q_m k_m`, 660, 178, { size: 30 });
+            tex(c, String.raw`=\lVert\mathbf{q}\rVert\,\lVert\mathbf{k}\rVert\cos\theta`, 660, 252, { size: 30 });
+          });
+          const score = qMag * kMag * cs;
+          group(c, sm(t, 1000, 1800), () => {
+            tex(c, String.raw`=${fmt(qMag, 2)}\times${fmt(kMag, 2)}\times\cos\theta = ${fmt(score, 2)}`, 660, 318, { size: 26, color: C.text });
+          });
+          // Gauge from -2.5 to +2.5
+          const gx = 700, gw = 480, gy = 402, gh = 22, zx = gx + gw / 2;
+          card(c, gx, gy, gw, gh, { fill: C.panel2, r: 11 });
+          const vx = zx + (score / 2.5) * (gw / 2);
+          card(c, Math.min(zx, vx), gy, Math.abs(vx - zx), gh, { fill: score >= 0 ? C.v : C.hot, r: 11 });
+          line(c, [[zx, gy - 10], [zx, gy + gh + 10]], { color: C.dim, lw: 2 });
+          pt(c, vx, gy + gh / 2, 14, C.gold);
+          text(c, '−2.5 (opposite)', gx, gy + 52, { size: 18, color: C.hot });
+          text(c, '0 (right angle)', zx, gy + 52, { size: 18, color: C.dim, align: 'center' });
+          text(c, '+2.5 (aligned)', gx + gw, gy + 52, { size: 18, color: C.v, align: 'right' });
+          const phrase = cs > 0.85 ? 'aligned: large positive score' : cs < -0.85 ? 'opposite: large negative score' : Math.abs(cs) < 0.15 ? 'right angle: score near zero' : cs > 0 ? 'partly aligned: positive score' : 'partly opposed: negative score';
+          text(c, phrase, 940, 500, { size: 26, bold: true, align: 'center', color: C.gold });
+          text(c, `θ = ${Math.round(((th * 180) / Math.PI) % 360)}°`, 48, 140, { size: 24, color: C.dim });
+        }
+      },
+
+      /* ============ 4 ============ */
+      {
+        title: 'Worked example: "it" scores every token', dur: 17000, accent: C.gold,
+        caption: "Multiply element by element, then sum. q·k for 'animal' is 2.30, the largest score, so 'it' will attend mostly to 'animal'. (Toy numbers.)",
+        notes: `<p><b>Reading the table.</b> The blue row is the query for "it". Each amber row is one token's key. The middle cells are the four elementwise products; their sum is the score. The positive scores for "animal" (2.30), "tired" (0.88) and "was" (0.73) are high; "street" is negative and "it" itself is close to zero.</p>`,
+        draw(c, t) {
+          const qv = Q[2];
+          tex(c, String.raw`\text{score } s_{it,j}=q_{it}\cdot k_j`, 48, 130, { size: 22, color: C.dim });
+          tex(c, String.raw`q_{it}`, 232, 164, { size: 26, align: 'right', color: C.q });
+          grid(c, [qv], 250, 146, 62, 36, { max: 1.3, d: 2, size: 17, cmap: roleFill(C.q), ink: () => C.text });
+          tex(c, String.raw`\text{products }q_m\,k_m`, 520, 164, { size: 20, color: C.dim });
+          text(c, 'score', 790, 164, { size: 19, color: C.dim });
+          TOKENS.forEach((tok, i) => {
+            const s0 = 900 + i * 2800, ry = 214 + i * 62;
+            const a = sm(t, s0, s0 + 400);
+            const prods = qv.map((v, m) => v * K[i][m]);
+            const sc = vdot(qv, K[i]);
+            if (t >= s0 && t < s0 + 2800) card(c, 232, ry - 6, 1000, 56, { fill: 'rgba(179,140,255,0.10)', stroke: C.acc, lw: 2, r: 12 });
+            lab(c, tok, 226, ry + 22, { align: 'right', size: 24, color: i === 0 ? C.gold : C.text, alpha: a });
+            grid(c, [K[i]], 250, ry, 62, 44, { max: 1.3, d: 2, size: 17, cmap: roleFill(C.k), ink: () => C.text, show: () => a });
+            grid(c, [prods], 520, ry, 62, 44, {
+              max: 1.4, d: 2, size: 17, pos: C.teal, neg: C.hot,
+              show: (_, m) => sm(t, s0 + 500 + m * 260, s0 + 740 + m * 260)
+            });
+            const sa = sm(t, s0 + 1600, s0 + 1900);
+            text(c, `= ${fmt(sc, 2)}`, 790, ry + 22, { size: 28, bold: true, color: sc >= 0 ? C.teal : C.hot, alpha: sa });
+            const bl = Math.abs(sc) / 2.4 * 260 * sm(t, s0 + 1900, s0 + 2500);
+            card(c, 900, ry + 10, Math.max(bl, 2), 24, { fill: sc >= 0 ? C.teal : C.hot, r: 8 });
+          });
+          if (t > 13000) {
+            card(c, 896, 214 - 8, 306, 56, { fill: 'rgba(255,209,102,0.10)', stroke: C.gold, lw: 3, r: 12, alpha: sm(t, 13000, 13600) });
+          }
+        }
+      },
+
+      /* ============ 5 ============ */
+      {
+        title: 'Why a dot product? Four reasons', dur: 14000, accent: C.teal,
+        caption: 'A dot product is cheap, learnable and built for matrix hardware. Because the query and key projections differ, the score matrix is not symmetric.',
+        notes: `<p><b>Asymmetry.</b> Write <i>M = W<sub>Q</sub>W<sub>K</sub><sup>T</sup></i>. Then <i>s<sub>ij</sub> = x<sub>i</sub> M x<sub>j</sub><sup>T</sup></i>. The matrix <i>M</i> is not symmetric in general, so token <i>i</i> can attend strongly to token <i>j</i> while <i>j</i> barely attends to <i>i</i>. That is what a causal language model needs.</p>`,
+        draw(c, t) {
+          const card4 = (x, y, n, title, a) => {
+            group(c, a, () => {
+              card(c, x, y, 580, 196, { fill: C.panel, stroke: C.line, lw: 2, r: 18 });
+              pt(c, x + 38, y + 38, 21, C.teal);
+              text(c, String(n), x + 38, y + 38, { size: 22, bold: true, align: 'center', color: C.ink });
+              text(c, title, x + 74, y + 38, { size: 28, bold: true });
+            });
+          };
+          const a1 = sm(t, 300, 900), a2 = sm(t, 2600, 3200), a3 = sm(t, 5000, 5600), a4 = sm(t, 7400, 8000);
+          card4(48, 122, 1, 'Measures alignment', a1);
+          group(c, a1, () => {
+            para(c, 'Same direction: large score. Right angle: zero. Opposite: negative.', 76, 186, 520, { size: 21, color: C.dim, lh: 30 });
+            tex(c, String.raw`q\cdot k=\lVert q\rVert\,\lVert k\rVert\cos\theta`, 76, 268, { size: 26, anchor: 'mid' });
+          });
+          card4(652, 122, 2, 'All pairs in one matrix product', a2);
+          group(c, a2, () => {
+            tex(c, String.raw`S=QK^{\top}`, 680, 232, { size: 40 });
+            para(c, 'Every query meets every key in one GEMM (general matrix multiply). GPUs are built for exactly this.', 680, 262, 530, { size: 21, color: C.dim, lh: 30 });
+          });
+          card4(48, 332, 3, 'Learnable end to end', a3);
+          group(c, a3, () => {
+            tex(c, String.raw`s_{ij}=x_i\,W_QW_K^{\top}\,x_j^{\top}`, 76, 412, { size: 30 });
+            para(c, 'The query and key projections are trained by gradient descent, so the scoring rule is learned.', 76, 448, 520, { size: 21, color: C.dim, lh: 30 });
+          });
+          card4(652, 332, 4, 'Asymmetric scores', a4);
+          group(c, a4, () => {
+            tex(c, String.raw`s_{ij}\neq s_{ji}`, 676, 404, { size: 30, anchor: 'mid' });
+            para(c, 'Different projections for Q and K: "it looks at animal" need not equal "animal looks at it".', 676, 432, 330, { size: 19, color: C.dim, lh: 26 });
+            const D = [[0.9, 1.6, -0.4], [0.2, 0.5, 1.1], [-0.3, 0.8, 0.7]];
+            grid(c, D, 1040, 372, 50, 40, {
+              max: 2, d: 1, size: 17, cmap: (v) => mix('#1b2a52', C.k, clamp(0.2 + 0.8 * v / 2)), ink: (v) => (v / 2 > 0.45 ? C.ink : C.text),
+              hl: [[0, 1, C.gold, 4], [1, 0, C.hot, 4]]
+            });
+            text(c, 'S[0,1] ≠ S[1,0]', 1040, 500, { size: 16, color: C.dim });
+          });
+          group(c, sm(t, 10000, 10700), () => {
+            text(c, 'Cheap · learnable · matrix-friendly. Its one weakness is scale: the next video explains it.', W / 2, 556, { size: 24, align: 'center', color: C.gold, bold: true });
+          });
+        }
+      },
+
+      /* ============ 6 ============ */
+      {
+        title: 'All pairs at once: S = QKᵀ', dur: 15000, accent: C.q,
+        caption: 'Stacking all queries and keys gives one matrix product S = QKᵀ. Entry (i, j) is the score of token i looking at token j.',
+        notes: `<p><b>Shapes.</b> <i>Q</i> is <i>n × d<sub>k</sub></i>, <i>K</i> is <i>n × d<sub>k</sub></i>, so <i>K<sup>T</sup></i> is <i>d<sub>k</sub> × n</i> and <i>S = QK<sup>T</sup></i> is <i>n × n</i>. Each entry is one dot product. The animation computes the cells in row-major order: the highlighted row of Q and the highlighted column of K<sup>T</sup> meet at the cell being filled.</p>`,
+        draw(c, t) {
+          const cur = Math.min(24, Math.floor(seg(t, 1200, 11000) * 25));
+          const ci = Math.floor(cur / 5), cj = cur % 5;
+          const KT = transpose(K);
+          // Q (left)
+          grid(c, Q, 190, 350, 62, 36, {
+            rows: TOKENS, max: 1.3, d: 1, size: 16, cmap: (v) => divMap(v, 1.3, C.hot, C.q), ink: (v) => (v / 1.3 > 0.45 ? C.ink : C.text), lsize: 19,
+            hl: [0, 1, 2, 3].map((m) => [ci, m, C.gold, 3]).concat([])
+          });
+          // K^T (top)
+          grid(c, KT, 600, 232, 62, 28, {
+            rows: ['d₁', 'd₂', 'd₃', 'd₄'], cols: TOKENS, max: 1.3, d: 1, size: 15, cmap: (v) => divMap(v, 1.3, C.hot, C.k), ink: (v) => (v / 1.3 > 0.45 ? C.ink : C.text), lsize: 17, lcolor: C.dim,
+            hl: [0, 1, 2, 3].map((m) => [m, cj, C.gold, 3])
+          });
+          // S (result)
+          grid(c, S, 600, 360, 62, 36, {
+            rows: TOKENS, max: 2.4, d: 2, size: 17, cmap: (v) => seqMap(clamp((v + 0.5) / 3.0)), ink: (v) => ((v + 0.5) / 3.0 > 0.55 ? C.ink : C.text), lsize: 19,
+            show: (i, j) => (i * 5 + j < cur ? 1 : i * 5 + j === cur ? 0.5 + 0.5 * Math.sin(t / 120) ** 2 : 0),
+            hl: [[ci, cj, C.gold, 4]]
+          });
+          tex(c, String.raw`Q`, 314, 330, { size: 30, align: 'center', color: C.q });
+          tex(c, String.raw`K^{\top}`, 600 - 14, 212, { size: 26, align: 'right', color: C.k });
+          tex(c, String.raw`S=QK^{\top}`, 190, 566, { size: 34, align: 'left' });
+          // Live readout
+          const done = cur >= 25;
+          const cellVal = S[ci][cj];
+          group(c, 1, () => {
+            text(c, 'computing one cell', 950, 240, { size: 22, color: C.dim });
+            tex(c, String.raw`s_{${ci + 1}${cj + 1}}=q_{${ci + 1}}\cdot k_{${cj + 1}}`, 950, 290, { size: 30 });
+            text(c, `${TOKENS[ci]}  →  ${TOKENS[cj]}`, 950, 340, { size: 24, bold: true, color: C.gold });
+            text(c, `= ${fmt(cellVal, 2)}`, 950, 384, { size: 30, bold: true, color: cellVal >= 0 ? C.teal : C.hot });
+            text(c, done ? 'All 25 scores done in one matmul.' : `${cur} / 25 cells`, 950, 438, { size: 20, color: C.dim });
+          });
+        }
+      },
+
+      /* ============ 7 ============ */
+      {
+        title: 'Scores become weights, then a mix of values', dur: 15000, accent: C.v,
+        caption: 'Softmax turns each row of scores into weights that sum to 1. The output is a weighted mix of Value vectors: a soft dictionary lookup.',
+        notes: `<p><b>Softmax.</b> <i>a<sub>ij</sub> = exp(s<sub>ij</sub>) / Σ<sub>l</sub> exp(s<sub>il</sub>)</i>. The weights are positive and sum to 1 along each row. The output for token <i>i</i> is <i>o<sub>i</sub> = Σ<sub>j</sub> a<sub>ij</sub> v<sub>j</sub></i>. The next video explains why the scores are divided by √d<sub>k</sub> before the softmax.</p>`,
+        draw(c, t) {
+          const row = S[2];                       // scores of "it"
+          const wts = A[2];
+          const a1 = sm(t, 200, 900);
+          group(c, a1, () => tex(c, String.raw`\text{scores }s_{it,j}`, 48, 134, { size: 22, color: C.dim, anchor: 'mid' }));
+          hbars(c, row, TOKENS, 48, 146, 520, 40, { labelW: 120, valW: 84, max: 2.4, d: 2, lsize: 21, show: (i) => sm(t, 400 + i * 120, 900 + i * 120) });
+          const a2 = sm(t, 2800, 3500);
+          group(c, a2, () => tex(c, String.raw`\text{weights }a_{it,j}=\mathrm{softmax}(s)`, 48, 370, { size: 22, color: C.dim, anchor: 'mid' }));
+          hbars(c, wts, TOKENS, 48, 384, 520, 36, { labelW: 120, valW: 84, max: 1, d: 2, lsize: 21, colors: [C.v, C.v, C.v, C.v, C.v], show: (i) => sm(t, 3000 + i * 150, 3600 + i * 150) });
+          // Values
+          const av = sm(t, 4800, 5500);
+          group(c, av, () => tex(c, String.raw`\text{values }v_j`, 760, 134, { size: 22, color: C.dim, anchor: 'mid' }));
+          // Output: running weighted sum. The highlighted Value row is the token being added now.
+          const J = Math.min(5, Math.floor(seg(t, 6000, 11500) * 5.999));
+          const partial = [0, 1, 2, 3].map((m) => { let s = 0; for (let j = 0; j < J; j++) s += wts[j] * V[j][m]; return s; });
+          const hlRows = J > 0 ? [0, 1, 2, 3].map((m) => [J - 1, m, C.gold, 4]) : [];
+          grid(c, V, 800, 150, 62, 40, {
+            rows: TOKENS, max: 1.1, d: 1, size: 17, cmap: (v) => divMap(v, 1.1, C.hot, C.v), ink: (v) => (v / 1.1 > 0.45 ? C.ink : C.text), lsize: 19,
+            show: () => av, hl: hlRows
+          });
+          tex(c, String.raw`o_{it}=\sum_j a_{it,j}\,v_j`, 760, 394, { size: 28, anchor: 'mid' });
+          grid(c, [partial], 800, 452, 62, 46, { max: 1, d: 2, size: 18, cmap: (v) => divMap(v, 1, C.hot, C.gold), ink: (v) => (Math.abs(v) > 0.45 ? C.ink : C.text) });
+          text(c, `running sum over ${J} of 5 tokens`, 800, 522, { size: 19, color: C.dim });
+          group(c, sm(t, 12000, 12800), () => tex(c, String.raw`a_{ij}=\frac{e^{s_{ij}}}{\sum_l e^{s_{il}}}`, 48, 580, { size: 26, anchor: 'mid' }));
+        }
+      },
+
+      /* ============ 8 ============ */
+      {
+        title: 'Recap: the attention pipeline', dur: 11000, accent: C.acc,
+        caption: 'Dot products score every pair of tokens, softmax turns scores into weights, and values are mixed by those weights. Next: why divide by $\\sqrt{d_k}$?',
+        notes: `<p><b>Pipeline.</b> <i>X → (Q, K, V) → S = QK<sup>T</sup> → A = softmax(S) → O = AV</i>. Everything here is a matrix operation, which is why attention maps well onto GPUs. The missing piece is the scaling factor 1/√d<sub>k</sub>, covered in video 2.</p>`,
+        draw(c, t) {
+          const steps = [
+            { t: 'Tokens', s: 'X', col: C.dim },
+            { t: 'Q · K · V', s: 'XW_Q, XW_K, XW_V', col: C.q },
+            { t: 'Scores', s: 'S = QKᵀ', col: C.teal },
+            { t: 'Weights', s: 'A = softmax(S)', col: C.v },
+            { t: 'Output', s: 'O = AV', col: C.gold }
+          ];
+          const bw = 206, gapX = 40, x0 = (W - (5 * bw + 4 * gapX)) / 2, y = 210, bh = 130;
+          steps.forEach((st, i) => {
+            const a = sm(t, 300 + i * 500, 900 + i * 500);
+            const x = x0 + i * (bw + gapX);
+            group(c, a, () => {
+              block(c, x, y, bw, bh, st.t, { bar: st.col, stroke: st.col, lw: 2.5, size: 24, sub: st.s.replace('XW_Q, XW_K, XW_V', 'XW'), ssize: 20 });
+            });
+            if (i < steps.length - 1) {
+              const ax = x + bw + 6, bx = x + bw + gapX - 6;
+              arrow(c, ax, y + bh / 2, bx, y + bh / 2, { color: C.faint, lw: 3, alpha: sm(t, 800 + i * 500, 1200 + i * 500) });
+              const pf = seg(t, 3000 + i * 300, 4200 + i * 300);
+              if (pf > 0 && pf < 1) flowDot(c, ax, y + bh / 2, bx, y + bh / 2, pf, C.gold, 6);
+            }
+          });
+          group(c, sm(t, 4200, 5000), () => {
+            tex(c, String.raw`\text{Attention}(Q,K,V)=\mathrm{softmax}\left(QK^{\top}\right)V`, W / 2, 402, { size: 34, align: 'center' });
+          });
+          group(c, sm(t, 6200, 7000), () => {
+            card(c, 300, 460, 680, 96, { fill: 'rgba(179,140,255,0.12)', stroke: C.acc, lw: 2.5, r: 18 });
+            tex(c, String.raw`\text{Next video: the scaling factor }\frac{1}{\sqrt{d_k}}`, W / 2, 496, { size: 30, align: 'center', color: C.acc });
+            text(c, 'Why do unscaled dot products grow, and what does that do to softmax?', W / 2, 530, { size: 21, align: 'center', color: C.dim });
+          });
+        }
+      }
+    ]
+  });
+})();
+</script>
+</body>
+</html>

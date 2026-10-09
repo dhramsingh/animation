@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attention 4 · Scaled Dot-Product Attention, End to End</title>
+<link rel="stylesheet" href="../common/anim-kit.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../common/anim-kit.js"></script>
+<script>
+(function () {
+  const { C, W, text, tex, card, arrow, line, pt, glow, flowDot, block, lab, rich, para, measure,
+          clamp, sm, seg, fmt, mix, matmul, transpose, vdot, softmax, divMap, seqMap, lerp } = AK;
+
+  const MONO = '"JetBrains Mono", "DejaVu Sans Mono", "Liberation Mono", Consolas, monospace';
+
+  /* ---------- toy numbers (same as video 1; d_k = d_v = 4, n = 5) ---------- */
+  const TOKENS = ['animal', 'street', 'it', 'was', 'tired'];
+  const Q = [[0.3, 0.9, 0.1, 0.2], [0.1, 0.2, 0.8, 0.1], [1.2, 0.4, -0.3, 0.9], [0.2, 0.5, 0.4, 0.3], [0.6, 0.1, 0.5, -0.2]];
+  const K = [[1.1, 0.5, -0.2, 0.8], [-0.4, 1.0, 0.7, -0.1], [0.2, -0.3, 0.6, 0.1], [0.1, 0.4, 0.0, 0.5], [0.6, -0.2, 0.1, 0.3]];
+  const V = [[1.0, 0.0, 0.2, 0.0], [0.0, 1.0, 0.0, 0.3], [0.3, 0.3, 0.3, 0.3], [0.0, 0.2, 0.9, 0.0], [0.2, 0.0, 0.0, 1.0]];
+  const DK = 4, SCALE = Math.sqrt(DK);
+  const S = matmul(Q, transpose(K));                                          // raw scores
+  const SS = S.map((r) => r.map((v) => v / SCALE));                           // scaled scores
+  const MASKED = SS.map((r, i) => r.map((v, j) => (j <= i ? v : -Infinity))); // causal mask M
+  const A = MASKED.map((r) => softmax(r));                                   // row-wise weights
+  const O = matmul(A, V);                                                    // output
+
+  /* ---------- drawing helpers ---------- */
+  const group = (c, a, fn) => { if (a <= 0) return; c.save(); c.globalAlpha *= clamp(a); fn(); c.restore(); };
+  // Generic grid: cell(i, j) -> {text, fill, ink, hl, hatch, a}
+  function tgrid(c, rows, cols, x, y, cw, ch, cell, rowLabels, colLabels, lsize = 19) {
+    for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++) {
+      const k = cell(i, j) || {};
+      const fx = x + j * cw + 2, fy = y + i * ch + 2, fw = cw - 4, fh = ch - 4, a = k.a ?? 1;
+      card(c, fx, fy, fw, fh, { fill: C.panel2, r: 7, alpha: a });
+      if (k.fill) card(c, fx, fy, fw, fh, { fill: k.fill, r: 7, alpha: a });
+      if (k.hatch) {
+        c.save(); c.globalAlpha *= a;
+        c.beginPath(); c.rect(fx, fy, fw, fh); c.clip();
+        c.strokeStyle = 'rgba(160,175,215,0.22)'; c.lineWidth = 2;
+        for (let s = -fh; s < fw; s += 9) { c.beginPath(); c.moveTo(fx + s, fy + fh); c.lineTo(fx + s + fh, fy); c.stroke(); }
+        c.restore();
+      }
+      if (k.text) text(c, k.text, fx + fw / 2, fy + fh / 2, { size: k.size || 19, align: 'center', color: k.ink || C.text, alpha: a, bold: k.bold });
+      if (k.hl) card(c, fx, fy, fw, fh, { fill: null, stroke: k.hl, lw: 4, r: 7, alpha: a });
+    }
+    (rowLabels || []).forEach((s, i) => lab(c, s, x - 14, y + i * ch + ch / 2, { size: lsize, align: 'right', color: C.dim }));
+    (colLabels || []).forEach((s, j) => lab(c, s, x + j * cw + cw / 2, y - 16, { size: lsize, color: C.dim }));
+  }
+  // Matrix drawn to scale: r rows x cc columns, 18 px per element.
+  function matBox(c, x, y, r, cc, color, label, dims, a = 1) {
+    const w = cc * 18, h = r * 18;
+    group(c, a, () => {
+      card(c, x, y, w, h, { fill: color, r: 4, alpha: 0.28 });
+      c.save(); c.strokeStyle = color; c.globalAlpha *= 0.5; c.lineWidth = 1;
+      for (let j = 1; j < cc; j++) { c.beginPath(); c.moveTo(x + j * 18, y); c.lineTo(x + j * 18, y + h); c.stroke(); }
+      for (let i = 1; i < r; i++) { c.beginPath(); c.moveTo(x, y + i * 18); c.lineTo(x + w, y + i * 18); c.stroke(); }
+      c.restore();
+      card(c, x, y, w, h, { fill: null, stroke: color, lw: 2.5, r: 4 });
+      lab(c, label, x + w / 2, y - 22, { size: 26, color });
+      lab(c, dims, x + w / 2, y + h + 20, { size: 19, color: C.dim });
+    });
+    return { w, h };
+  }
+  // Single-line code with a small syntax highlighter.
+  function codeLine(c, s, x, y, size) {
+    const re = /(#.*$)|('[^']*'|"[^"]*")|(\b\d+(?:\.\d+)?\b)|(\b(?:def|return|if|import|as|None|True|False|for|in|else|not)\b)|([A-Za-z_]\w*)|(\s+|.)/g;
+    let m, cx = x;
+    const adv = (t, col) => { text(c, t, cx, y, { size, family: MONO, color: col }); cx += measure(t, size, { family: MONO }); };
+    while ((m = re.exec(s))) {
+      const [tok, com, str, num, kw] = m;
+      if (com) adv(com, C.faint); else if (str) adv(str, C.v); else if (num) adv(num, C.gold);
+      else if (kw) adv(kw, C.acc); else adv(tok, C.text);
+    }
+  }
+
+  const CODE = [
+    'import numpy as np',
+    '',
+    'def softmax(x, axis=-1):',
+    '    x = x - x.max(axis=axis, keepdims=True)   # stability',
+    '    e = np.exp(x)',
+    '    return e / e.sum(axis=axis, keepdims=True)',
+    '',
+    'def scaled_dot_product_attention(Q, K, V, causal=True):',
+    '    d_k = Q.shape[-1]',
+    '    S = Q @ K.T / np.sqrt(d_k)                 # (n, n) scores',
+    '    if causal:',
+    '        n = S.shape[0]',
+    '        mask = np.triu(np.ones((n, n), dtype=bool), k=1)',
+    '        S = np.where(mask, -np.inf, S)         # hide future tokens',
+    '    A = softmax(S, axis=-1)                    # rows sum to 1',
+    '    return A @ V, A                            # (n, d_v), (n, n)'
+  ];
+
+  AK.create({
+    host: '#app',
+    part: 'VIDEO 4 OF 4 · SCALED DOT-PRODUCT ATTENTION',
+    title: 'Scaled dot-product attention, end to end',
+    scenes: [
+
+      /* ============ 1 ============ */
+      {
+        title: 'The pipeline at a glance', dur: 12000, accent: C.acc,
+        caption: 'Scaled dot-product attention: three projections, one score matrix, a masked row-wise softmax, and a weighted sum. All matrix operations.',
+        notes: `<p><b>Full formula.</b> <i>Attention(Q, K, V) = softmax(QK<sup>T</sup>/√d<sub>k</sub> + M) V</i>, where <i>M</i> is the mask. For a decoder-only language model <i>M</i> is the causal mask: 0 on and below the diagonal, −∞ above it.</p>`,
+        draw(c, t) {
+          const steps = [
+            { x: 52, w: 150, t: 'Input X', s: 'n\\times d_{\\text{model}}', col: C.dim },
+            { x: 252, w: 200, t: 'Q · K · V', s: 'XW_Q,\\;XW_K,\\;XW_V', col: C.q },
+            { x: 502, w: 236, t: 'Scores', s: 'S=QK^{\\top}/\\sqrt{d_k}', col: C.teal },
+            { x: 788, w: 236, t: 'Weights', s: '\\mathrm{softmax}(S+M)', col: C.v },
+            { x: 1074, w: 150, t: 'Output', s: 'O = AV', col: C.gold }
+          ];
+          steps.forEach((st, i) => {
+            const a = sm(t, 300 + i * 450, 900 + i * 450);
+            group(c, a, () => block(c, st.x, 220, st.w, 120, st.t, { bar: st.col, stroke: st.col, lw: 2.5, size: 24, sub: st.s, ssize: 19 }));
+            if (i < steps.length - 1) {
+              const x1 = st.x + st.w + 4, x2 = steps[i + 1].x - 4;
+              arrow(c, x1, 280, x2, 280, { color: C.faint, lw: 3, alpha: sm(t, 700 + i * 450, 1100 + i * 450), head: 12 });
+              const p = seg(t, 2600 + i * 350, 3700 + i * 350);
+              if (p > 0 && p < 1) flowDot(c, x1, 280, x2, 280, p, C.gold, 6);
+            }
+          });
+          group(c, sm(t, 5200, 6000), () => tex(c, String.raw`\mathrm{Attention}(Q,K,V)=\mathrm{softmax}\left(\frac{QK^{\top}}{\sqrt{d_k}}+M\right)V`, W / 2, 430, { size: 36, align: 'center' }));
+          const chips = [['n', 'number of tokens'], ['d_k', 'query and key width'], ['M', 'mask: 0 or −∞']];
+          chips.forEach(([sym, desc], i) => {
+            const a = sm(t, 7600 + i * 500, 8100 + i * 500);
+            group(c, a, () => {
+              const x = 180 + i * 330;
+              card(c, x, 500, 300, 70, { fill: C.panel, stroke: C.line, lw: 2, r: 16 });
+              tex(c, sym, x + 26, 535, { size: 28, anchor: 'mid', color: C.gold });
+              text(c, desc, x + 66, 535, { size: 21, color: C.text });
+            });
+          });
+        }
+      },
+
+      /* ============ 2 ============ */
+      {
+        title: 'Track the shapes', dur: 14000, accent: C.q,
+        caption: 'Shapes decide everything. Inner dimensions must match: (n × d)(d × m) gives (n × m). Here $n=5$ and $d_k=4$.',
+        notes: `<p><b>Shape rules.</b> <i>X</i> is <i>n × d<sub>model</sub></i>; <i>W<sub>Q</sub></i> is <i>d<sub>model</sub> × d<sub>k</sub></i>, so <i>Q</i> is <i>n × d<sub>k</sub></i>. <i>K<sup>T</sup></i> is <i>d<sub>k</sub> × n</i>, so <i>S</i> is <i>n × n</i>. <i>A</i> is <i>n × n</i>, <i>V</i> is <i>n × d<sub>v</sub></i>, and the output <i>O</i> is <i>n × d<sub>v</sub></i>. The figure is drawn to scale: 18 px per element.</p>`,
+        draw(c, t) {
+          // Row 1: X · W_Q = Q
+          group(c, sm(t, 400, 1200), () => matBox(c, 60, 186, 5, 8, C.dim, 'X', 'n\\times d_{\\text{model}}', 1));
+          const a1 = sm(t, 1200, 1800);
+          group(c, a1, () => tex(c, '\\times', 226, 236, { size: 34, align: 'center' }));
+          group(c, sm(t, 1600, 2400), () => matBox(c, 244, 186, 8, 4, C.q, 'W_Q', 'd_{\\text{model}}\\times d_k', 1));
+          group(c, sm(t, 2600, 3200), () => tex(c, '=', 340, 236, { size: 34, align: 'center' }));
+          group(c, sm(t, 3000, 3800), () => matBox(c, 362, 186, 5, 4, C.q, 'Q', 'n × d_k', 1));
+          // Row 2: Q · Kᵀ = S
+          group(c, sm(t, 4800, 5400), () => matBox(c, 620, 186, 5, 4, C.q, 'Q', 'n × d_k', 1));
+          group(c, sm(t, 5400, 6000), () => tex(c, '\\times', 706, 236, { size: 34, align: 'center' }));
+          group(c, sm(t, 5800, 6400), () => matBox(c, 728, 216, 4, 5, C.k, 'Kᵀ', 'd_k × n', 1));
+          group(c, sm(t, 6800, 7400), () => tex(c, '=', 840, 236, { size: 34, align: 'center' }));
+          group(c, sm(t, 7200, 8000), () => matBox(c, 866, 186, 5, 5, C.teal, 'S', 'n × n', 1));
+          // Row 3: A · V = O
+          group(c, sm(t, 8800, 9400), () => matBox(c, 60, 426, 5, 5, C.v, 'A', 'n × n', 1));
+          group(c, sm(t, 9400, 10000), () => tex(c, '\\times', 166, 476, { size: 34, align: 'center' }));
+          group(c, sm(t, 9800, 10400), () => matBox(c, 184, 426, 5, 4, C.gold, 'V', 'n × d_v', 1));
+          group(c, sm(t, 10800, 11400), () => tex(c, '=', 276, 476, { size: 34, align: 'center' }));
+          group(c, sm(t, 11200, 11800), () => matBox(c, 300, 426, 5, 4, C.gold, 'O', 'n × d_v', 1));
+          group(c, sm(t, 11800, 12600), () => {
+            card(c, 640, 400, 580, 176, { fill: C.panel, stroke: C.line, lw: 2, r: 18 });
+            para(c, 'Shape rule: the inner dimensions must agree, and the result takes the outer ones. $(n\\times d_k)(d_k\\times n)=(n\\times n)$. The score matrix is square, one row per query, one column per key.', 664, 422, 530, { size: 21, color: C.text, lh: 30 });
+          });
+        }
+      },
+
+      /* ============ 3 ============ */
+      {
+        title: 'Step 1: scores S = QKᵀ', dur: 16000, accent: C.teal,
+        caption: 'Entry $S_{ij}=q_i\\cdot k_j$. Every token scores every token in one matrix multiplication. Row $i$ is the query of token $i$.',
+        notes: `<p><b>Reading the matrix.</b> Row <i>i</i> is the query of token <i>i</i>; column <i>j</i> is the key of token <i>j</i>. The entries are unscaled dot products. Row "it" is the one used in the earlier videos: 2.30 for "animal", −0.38 for "street", 0.03 for "it", 0.73 for "was" and 0.88 for "tired".</p>`,
+        draw(c, t) {
+          const x0 = 360, y0 = 196, cw = 96, ch = 56;
+          group(c, sm(t, 200, 800), () => tex(c, String.raw`S=QK^{\top}`, 60, 230, { size: 40, align: 'left' }));
+          group(c, sm(t, 600, 1200), () => tex(c, String.raw`S_{ij}=q_i\cdot k_j`, 60, 300, { size: 30, align: 'left', color: C.teal }));
+          group(c, sm(t, 1000, 1600), () => text(c, 'row i = query of token i', 60, 350, { size: 20, color: C.dim }));
+          group(c, sm(t, 1000, 1600), () => text(c, 'column j = key of token j', 60, 380, { size: 20, color: C.dim }));
+          const rowRev = (i) => 1500 + i * 2300;
+          tgrid(c, 5, 5, x0, y0, cw, ch, (i, j) => {
+            const s0 = rowRev(i) + j * 300;
+            const a = sm(t, s0, s0 + 300);
+            const v = S[i][j];
+            const active = t >= rowRev(i) && t < rowRev(i) + 2300 && j === Math.min(4, Math.floor(seg(t, rowRev(i), rowRev(i) + 2300) * 5));
+            return { text: a > 0 ? fmt(v, 2) : '', fill: a > 0 ? divMap(v, 2.4, C.hot, C.teal) : null, a: 1, ink: C.text, hl: active ? C.gold : null };
+          }, TOKENS, TOKENS, 20);
+          // Right panel: the "it" row in words
+          group(c, sm(t, 4700, 5400), () => {
+            card(c, 860, 190, 360, 300, { fill: C.panel, stroke: C.line, lw: 2, r: 18 });
+            text(c, 'row "it" (i = 3)', 884, 220, { size: 22, bold: true, color: C.gold });
+            S[2].forEach((v, j) => {
+              const a = sm(t, 5000 + j * 350, 5350 + j * 350);
+              group(c, a, () => {
+                text(c, `it · ${TOKENS[j]}`, 884, 262 + j * 40, { size: 21, color: C.text });
+                text(c, fmt(v, 2), 1196, 262 + j * 40, { size: 21, bold: true, color: v >= 0 ? C.teal : C.hot, align: 'right' });
+              });
+            });
+          });
+        }
+      },
+
+      /* ============ 4 ============ */
+      {
+        title: 'Step 2: scale by $1/\\sqrt{d_k}$', dur: 12000, accent: C.k,
+        caption: 'Divide every score by $\\sqrt{d_k}=\\sqrt{4}=2$ here. Real heads with $d_k=64$ divide by $8$. The scaling keeps logits at $O(1)$.',
+        notes: `<p><b>Why.</b> If the entries of <i>q</i> and <i>k</i> have unit variance, then <i>q·k</i> has variance <i>d<sub>k</sub></i>. Dividing by <i>√d<sub>k</sub></i> brings the variance back to 1 (video 2). Here <i>d<sub>k</sub></i> = 4, so every score is halved. The raw matrix from the previous step is shown faded for comparison.</p>`,
+        draw(c, t) {
+          const p = sm(t, 1000, 6000);
+          const x0 = 360, y0 = 196, cw = 96, ch = 56;
+          tgrid(c, 5, 5, x0, y0, cw, ch, (i, j) => {
+            const v = lerp(S[i][j], SS[i][j], p);
+            return { text: fmt(v, 2), fill: divMap(v, 2.4, C.hot, C.teal), ink: C.text };
+          }, TOKENS, TOKENS, 20);
+          group(c, sm(t, 500, 1200), () => tex(c, String.raw`\frac{S}{\sqrt{d_k}}=\frac{S}{\sqrt{4}}=\frac{S}{2}`, 60, 250, { size: 34, align: 'left' }));
+          group(c, sm(t, 2000, 2800), () => text(c, '÷ 2 applied to every cell', 60, 320, { size: 22, color: C.gold, bold: true }));
+          group(c, sm(t, 3000, 3800), () => {
+            card(c, 860, 190, 360, 300, { fill: C.panel, stroke: C.line, lw: 2, r: 18 });
+            text(c, 'Why divide?', 884, 222, { size: 24, bold: true, color: C.k });
+            para(c, 'Unscaled, the spread of $q\\cdot k$ grows like $\\sqrt{d_k}$. Dividing brings it back to about 1. At $d_k=64$ the divisor is 8; at $d_k=1024$ it is 32.', 884, 250, 320, { size: 20, color: C.text, lh: 30 });
+          });
+          group(c, sm(t, 5200, 6000), () => text(c, 'Largest score "animal"–"it": 2.30 → 1.15', W / 2, 560, { size: 24, color: C.text, align: 'center', bold: true }));
+        }
+      },
+
+      /* ============ 5 ============ */
+      {
+        title: 'Step 3: causal mask, no peeking ahead', dur: 16000, accent: C.hot,
+        caption: 'A language model must not see future tokens. Add −∞ above the diagonal; softmax turns −∞ into exactly 0 weight.',
+        notes: `<p><b>Causal mask.</b> <i>M<sub>ij</sub> = 0</i> when <i>j ≤ i</i>, and <i>M<sub>ij</sub> = −∞</i> when <i>j &gt; i</i>. Token <i>i</i> can therefore only read tokens 1 … i. Because <i>e<sup>−∞</sup> = 0</i>, the masked weights vanish after softmax. Encoder models (e.g. BERT) skip this mask; GPT-style decoders need it.</p>`,
+        draw(c, t) {
+          const x0 = 430, y0 = 196, cw = 96, ch = 56;
+          const reveal = (i, j) => (j > i ? sm(t, 1000 + (i * 5 + j) * 110, 1300 + (i * 5 + j) * 110) : sm(t, 800 + i * 300, 1100 + i * 300));
+          tgrid(c, 5, 5, x0, y0, cw, ch, (i, j) => {
+            const v = SS[i][j];
+            if (j > i) {
+              const a = reveal(i, j);
+              return { hatch: true, text: a > 0.5 ? '−∞' : '', ink: C.hot, bold: true, size: 22, a: 0.4 + 0.6 * a, fill: 'rgba(255,107,107,0.10)' };
+            }
+            return { text: fmt(v, 2), fill: divMap(v, 2.4, C.hot, C.teal), ink: C.text, a: reveal(i, j) };
+          }, TOKENS, TOKENS, 20);
+          // Arrows: each token may only look left
+          group(c, sm(t, 500, 900), () => text(c, 'allowed: j ≤ i (lower triangle)', 60, 150, { size: 22, color: C.teal, bold: true }));
+          group(c, sm(t, 6200, 7000), () => {
+            tex(c, String.raw`M_{ij}=0\quad (j\le i)`, 60, 300, { size: 28, align: 'left', color: C.teal });
+            tex(c, String.raw`M_{ij}=-\infty\quad (j>i)`, 60, 346, { size: 28, align: 'left', color: C.hot });
+          });
+          group(c, sm(t, 8000, 8800), () => {
+            card(c, 60, 390, 250, 60, { fill: C.panel2, r: 14 });
+            tex(c, 'e^{\\text{−∞}}=0', 185, 420, { size: 24, align: 'center', color: C.text, anchor: 'mid' });
+          });
+          group(c, sm(t, 9400, 10200), () => {
+            para(c, 'Row "it" (i = 3) sees only animal, street and itself. "was" and "tired" are in the future and are blocked.', 60, 480, 500, { size: 21, color: C.dim, lh: 30 });
+          });
+        }
+      },
+
+      /* ============ 6 ============ */
+      {
+        title: 'Step 4: row-wise softmax', dur: 16000, accent: C.v,
+        caption: 'Softmax runs row by row. Each token gets a probability distribution over the tokens it may see, and every row sums to 1.',
+        notes: `<p><b>Row-wise.</b> For row <i>i</i>, <i>A<sub>ij</sub> = exp(M<sub>ij</sub> + S<sub>ij</sub>/√d<sub>k</sub>) / Σ<sub>l</sub> exp(…)</i>. The worked row for "it" uses the three visible scores 1.15, −0.19 and 0.015. Their exponentials sum to 5.00, which gives weights 0.632, 0.165 and 0.203.</p>`,
+        draw(c, t) {
+          const x0 = 410, y0 = 196, cw = 84, ch = 56;
+          const rowT = (i) => 800 + i * 2400;
+          tgrid(c, 5, 5, x0, y0, cw, ch, (i, j) => {
+            const a = sm(t, rowT(i), rowT(i) + 700);
+            if (j > i) return { hatch: true, text: a > 0.5 ? '0' : '', ink: C.dim, a: 0.6, fill: 'rgba(255,107,107,0.06)' };
+            const v = A[i][j];
+            return { text: a > 0 ? fmt(v, 3) : '', fill: a > 0 ? seqMap(v) : null, ink: v > 0.5 ? C.ink : C.text, a: 1, hl: t >= rowT(i) && t < rowT(i) + 2400 ? C.gold : null };
+          }, TOKENS, TOKENS, 20);
+          group(c, sm(t, 500, 900), () => tex(c, String.raw`A=\mathrm{softmax}_{\text{row}}(S/\sqrt{d_k}+M)`, 60, 150, { size: 22, align: 'left' }));
+          group(c, sm(t, 500, 900), () => text(c, 'every row sums to 1 →', 60, 230, { size: 22, color: C.v, bold: true }));
+          // Worked example for row "it"
+          const row = [1.15, -0.19, 0.015];
+          const ex = row.map(Math.exp), sum = ex.reduce((a, b) => a + b, 0);
+          group(c, sm(t, 3300, 3900), () => {
+            card(c, 860, 190, 360, 336, { fill: C.panel, stroke: C.line, lw: 2, r: 18 });
+            text(c, 'row "it", visible keys only', 884, 220, { size: 22, bold: true, color: C.gold });
+          });
+          const names = ['animal', 'street', 'it'];
+          names.forEach((nm, j) => {
+            const a = sm(t, 4000 + j * 500, 4500 + j * 500);
+            group(c, a, () => {
+              text(c, `${nm}`, 884, 262 + j * 44, { size: 21, color: C.text });
+              tex(c, `e^{${fmt(row[j], 2)}}=${fmt(ex[j], 3)}`, 1050, 262 + j * 44, { size: 24, color: C.text, anchor: 'mid' });
+            });
+          });
+          group(c, sm(t, 6000, 6700), () => {
+            text(c, `sum = ${fmt(sum, 3)}`, 884, 402, { size: 22, color: C.v, bold: true });
+            text(c, `weights = ${ex.map((e) => fmt(e / sum, 3)).join(', ')}`, 884, 440, { size: 20, color: C.v });
+            text(c, 'all other keys: weight 0', 884, 478, { size: 20, color: C.dim });
+          });
+        }
+      },
+
+      /* ============ 7 ============ */
+      {
+        title: 'Step 5: output O = AV, a mix of values', dur: 16000, accent: C.gold,
+        caption: 'Each output row is a weighted average of value vectors. Information flows from visible tokens into the current position.',
+        notes: `<p><b>Output.</b> <i>o<sub>i</sub> = Σ<sub>j</sub> A<sub>ij</sub> v<sub>j</sub></i>. The animation adds one weighted value vector at a time to the output row being computed. Rows before it are finished; rows after it are still empty.</p>`,
+        draw(c, t) {
+          const ax = 120, ay = 196, cw = 62, ch = 56;
+          const vx = 520, ox = 900, cwv = 70, cwo = 66;
+          const rowT = (r) => 900 + r * 2600;
+          // A (left)
+          tgrid(c, 5, 5, ax, ay, cw, ch, (i, j) => {
+            const hl = t >= rowT(i) && t < rowT(i) + 2600;
+            return { text: j > i ? '0' : fmt(A[i][j], 2), fill: j > i ? null : seqMap(A[i][j]), ink: A[i][j] > 0.5 ? C.ink : C.text, size: 17, hl: hl ? C.gold : null };
+          }, TOKENS, TOKENS, 17);
+          tex(c, 'A', ax + 2.5 * cw, 150, { size: 30, align: 'center', color: C.teal });
+          // V (middle)
+          tgrid(c, 5, 4, vx, ay, cwv, ch, (i, j) => {
+            const cur = t >= rowT(0);
+            const r = Math.floor(seg(t, rowT(0), rowT(4) + 2600) * 5);
+            return { text: fmt(V[i][j], 2), fill: divMap(V[i][j], 1.1, C.hot, C.v), ink: C.text, size: 17 };
+          }, TOKENS, ['d1', 'd2', 'd3', 'd4'], 17);
+          tex(c, 'V', vx + 2 * cwv, 150, { size: 30, align: 'center', color: C.v });
+          // O (right) with running sums
+          tgrid(c, 5, 4, ox, ay, cwv, ch, (i, j) => {
+            const start = rowT(i);
+            if (t < start) return { text: '', fill: null, a: 1 };
+            const f = seg(t, start, start + 2400);
+            const J = i < Math.floor(seg(t, rowT(0), rowT(4) + 2600) * 5) ? 5 : Math.min(5, Math.floor(f * 5.999) + (f > 0 ? 1 : 0));
+            let s = 0;
+            for (let k = 0; k < J; k++) s += A[i][k] * V[k][j];
+            const done = J >= 5;
+            return { text: fmt(s, 2), fill: divMap(s, 1.1, C.hot, C.gold), ink: C.text, size: 17, hl: (!done && t >= start) ? C.gold : null };
+          }, TOKENS, ['d1', 'd2', 'd3', 'd4'], 17);
+          tex(c, 'O', ox + 2 * cwv, 150, { size: 30, align: 'center', color: C.gold });
+          tex(c, String.raw`o_i=\sum_j A_{ij}\,v_j`, 860, 510, { size: 30, align: 'left' });
+          group(c, sm(t, 800, 1200), () => text(c, 'row i of A × V = row i of O', 60, 520, { size: 22, color: C.dim }));
+          group(c, sm(t, 14800, 15600), () => rich(c, 'O is $n\\times d_v$: one output vector per token', 60, 560, { size: 22, color: C.gold, bold: true }));
+        }
+      },
+
+      /* ============ 8 ============ */
+      {
+        title: 'The whole thing in NumPy', dur: 18000, accent: C.acc,
+        caption: 'The whole mechanism in about fifteen lines of NumPy: scores, scaling, causal mask, stable softmax, and the weighted sum.',
+        notes: `<p><b>Reading the code.</b> <code>S = Q @ K.T / np.sqrt(d_k)</code> is step 1 and 2. <code>np.where(mask, -np.inf, S)</code> is the causal mask. <code>softmax</code> subtracts the row maximum first, so <code>np.exp</code> never overflows. <code>A @ V</code> is the weighted sum. The function returns the attention weights as well, which is useful for inspecting what the model attends to.</p>`,
+        draw(c, t) {
+          card(c, 48, 128, 860, 470, { fill: '#0c1428', stroke: C.line, lw: 2, r: 16 });
+          const size = 19, lh = 27.2;
+          CODE.forEach((ln, i) => {
+            const a = sm(t, 300 + i * 500, 600 + i * 500);
+            if (a <= 0) return;
+            group(c, a, () => codeLine(c, ln, 72, 152 + i * lh, size));
+          });
+          // Cost panel
+          group(c, sm(t, 9000, 9800), () => {
+            card(c, 940, 128, 280, 470, { fill: C.panel, stroke: C.line, lw: 2, r: 18 });
+            text(c, 'Cost of S and A', 960, 160, { size: 22, bold: true, color: C.gold });
+            text(c, 'memory ∝ n²', 960, 194, { size: 20, color: C.text });
+            const ns = [512, 1024, 2048, 4096];
+            ns.forEach((n, i) => {
+              const a = sm(t, 9600 + i * 500, 10100 + i * 500);
+              const hgt = (n * n) / (4096 * 4096) * 250 * a;
+              const x = 972 + i * 62;
+              card(c, x, 540 - hgt, 44, hgt, { fill: [C.q, C.teal, C.gold, C.hot][i], r: 6 });
+              text(c, `n=${n}`, x + 22, 560, { size: 16, align: 'center', color: C.dim });
+            });
+            para(c, 'Doubling n quadruples the score matrix. Long-context models use memory-efficient kernels such as FlashAttention.', 960, 404, 240, { size: 19, color: C.text, lh: 27 });
+          });
+        }
+      },
+
+      /* ============ 9 ============ */
+      {
+        title: 'Recap and multi-head attention', dur: 12000, accent: C.v,
+        caption: 'Multi-head attention runs h smaller heads in parallel with $d_k=d_{\\text{model}}/h$, concatenates them, and projects with $W_O$.',
+        notes: `<p><b>Multi-head.</b> Split the model width into <i>h</i> heads, each with <i>d<sub>k</sub> = d<sub>model</sub>/h</i>. Each head runs the same scaled dot-product attention with its own W<sub>Q</sub>, W<sub>K</sub>, W<sub>V</sub>. The head outputs are concatenated to width <i>d<sub>model</sub></i> and mixed by an output projection <i>W<sub>O</sub></i>. The √d<sub>k</sub> scaling uses the per-head width.</p>`,
+        draw(c, t) {
+          // Multi-head diagram
+          const heads = [0, 1, 2, 3];
+          group(c, sm(t, 200, 800), () => block(c, 48, 210, 170, 80, 'Input X', { bar: C.dim, size: 22 }));
+          heads.forEach((h, i) => {
+            const a = sm(t, 1000 + i * 300, 1500 + i * 300);
+            const y = 128 + i * 78;
+            group(c, a, () => {
+              block(c, 300, y, 220, 62, `head ${h + 1}`, { bar: [C.q, C.k, C.v, C.acc][i], size: 22, sub: 'd_k = d_{\\text{model}}/4', ssize: 18 });
+            });
+            group(c, sm(t, 800, 1200), () => arrow(c, 222, 250, 296, y + 31, { color: C.faint, lw: 2.5, alpha: a, head: 10 }));
+            group(c, sm(t, 2400, 2900), () => arrow(c, 524, y + 31, 640, 250, { color: C.faint, lw: 2.5, alpha: a, head: 10 }));
+          });
+          group(c, sm(t, 2900, 3400), () => block(c, 640, 210, 170, 80, 'Concat', { bar: C.teal, size: 22 }));
+          group(c, sm(t, 3500, 4000), () => arrow(c, 812, 250, 860, 250, { color: C.faint, lw: 3, head: 12 }));
+          group(c, sm(t, 3700, 4300), () => block(c, 862, 210, 170, 80, 'Output', { bar: C.gold, size: 22, sub: 'W_O', ssize: 20 }));
+          group(c, sm(t, 4800, 5600), () => {
+            card(c, 48, 446, 1184, 150, { fill: C.panel, stroke: C.line, lw: 2, r: 18 });
+            tex(c, String.raw`\mathrm{MultiHead}(X)=\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_h)\,W_O`, 640, 484, { size: 28, align: 'center' });
+            tex(c, String.raw`\mathrm{head}_i=\mathrm{softmax}\left(\frac{Q_iK_i^{\top}}{\sqrt{d_k}}+M\right)V_i`, 640, 532, { size: 26, align: 'center' });
+          });
+        }
+      }
+    ]
+  });
+})();
+</script>
+</body>
+</html>

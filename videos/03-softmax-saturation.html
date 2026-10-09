@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attention 3 · Softmax Saturation and Vanishing Gradients</title>
+<link rel="stylesheet" href="../common/anim-kit.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="../common/anim-kit.js"></script>
+<script>
+(function () {
+  const { C, W, text, tex, card, arrow, line, pt, grid, bars, plot, lab, rich, para,
+          clamp, sm, seg, fmt, softmax, vdot, norm, rng, randn, divMap, seqMap } = AK;
+
+  /* ---------- numbers used throughout ---------- */
+  const Z = [2.0, 1.0, 0.1, -1.0];                 // logits for the first example
+  const G = [0.9, -0.3, 0.2, -0.8];                // upstream gradient dL/dp (fixed, illustrative)
+  const Z0 = [1.0, 0.6, 0.2, -0.4, -0.8];          // logits for the sharpness demo
+  const PA = softmax(Z);                           // scale s = 1
+  const PB = softmax(Z.map((z) => 6 * z));         // scale s = 6 (saturated)
+  const gradZ = (p, g) => { const gb = vdot(p, g); return p.map((pj, j) => pj * (g[j] - gb)); };
+  const pmaxAt = (s) => Math.max(...softmax(Z0.map((z) => s * z)));
+  const logNormAt = (s) => Math.log10(norm(gradZ(softmax(Z.map((z) => s * z)), G)) + 1e-30);
+  let S99 = 20; for (let s = 0; s <= 20; s += 0.05) { if (pmaxAt(s) > 0.99) { S99 = s; break; } }
+  const entropy = (p) => -p.reduce((a, pi) => a + (pi > 0 ? pi * Math.log(pi) : 0), 0);
+  const sciTex = (x) => { const e = Math.log10(Math.abs(x)), ex = Math.floor(e); return `${(x / Math.pow(10, ex)).toFixed(2)}\\times10^{${ex}}`; };
+  const RZ = rng(21);
+  const ZR = Array.from({ length: 8 }, () => 8 * randn(RZ));   // unscaled logits, sigma = 8 (d_k = 64)
+  const WU = softmax(ZR), WS = softmax(ZR.map((z) => z / 8));
+  const group = (c, a, fn) => { if (a <= 0) return; c.save(); c.globalAlpha *= clamp(a); fn(); c.restore(); };
+  const KEYLBL = ['k_1', 'k_2', 'k_3', 'k_4', 'k_5', 'k_6', 'k_7', 'k_8'];
+  const TOPU = Math.max(...WU), TOPS = Math.max(...WS);
+
+  // Bars that can point up (positive) or down (negative) from a zero line at y0.
+  function sbars(c, vals, x, y0, w, h, mx, colors, labels, show) {
+    const n = vals.length, gap = 16, bw = (w - gap * (n - 1)) / n;
+    line(c, [[x - 6, y0], [x + w + 6, y0]], { color: C.dim, lw: 2 });
+    vals.forEach((v, i) => {
+      const s = show ? show(i) : 1;
+      const hh = (Math.abs(v) / mx) * h * s, bx = x + i * (bw + gap);
+      card(c, bx, v >= 0 ? y0 - hh : y0, bw, hh, { fill: colors[i], r: 6 });
+      if (s > 0.5) text(c, fmt(v, 1), bx + bw / 2, v >= 0 ? y0 - hh - 18 : y0 + hh + 22, { size: 20, align: 'center', color: C.text });
+      lab(c, labels[i], bx + bw / 2, 530, { size: 22, color: C.dim });
+    });
+  }
+
+  AK.create({
+    host: '#app',
+    part: 'VIDEO 3 OF 4 · SOFTMAX SATURATION',
+    title: 'Softmax saturation',
+    scenes: [
+
+      /* ============ 1 ============ */
+      {
+        title: 'Softmax: from logits to probabilities', dur: 12000, accent: C.acc,
+        caption: 'Softmax exponentiates each logit and divides by the total. The output is a probability distribution over the keys.',
+        notes: `<p><b>Definition.</b> For logits <i>z ∈ ℝ<sup>n</sup></i>, <i>softmax(z)<sub>i</sub> = e<sup>z<sub>i</sub></sup> / Σ<sub>j</sub> e<sup>z<sub>j</sub></sup></i>. The output is positive and sums to 1. Exponentiation makes the largest logit dominate: a difference of 1 in logit becomes a factor of e ≈ 2.72 in weight.</p>`,
+        draw(c, t) {
+          const EZ = Z.map(Math.exp);
+          const stages = [
+            { x: 80, vals: Z, title: 'logits $z_i$', fmt: (v) => fmt(v, 1), max: 2.5, a: 200 },
+            { x: 480, vals: EZ, title: '$e^{z_i}$', fmt: (v) => fmt(v, 2), max: 8, a: 3800 },
+            { x: 880, vals: PA, title: '$p_i=e^{z_i}/\\sum_j e^{z_j}$', fmt: (v) => fmt(v, 3), max: 1, a: 7600 }
+          ];
+          stages.forEach((st, k) => {
+            const a = sm(t, st.a, st.a + 700);
+            group(c, a, () => rich(c, st.title, st.x, 150, { size: 24, color: C.text }));
+            const show = (i) => sm(t, st.a + 300 + i * 120, st.a + 900 + i * 120);
+            if (k === 0) {
+              // Logits can be negative, so bars point down from a zero line.
+              sbars(c, st.vals, st.x, 380, 300, 200, 2.5, [C.q, C.k, C.v, C.acc], ['z_1', 'z_2', 'z_3', 'z_4'], show);
+            } else {
+              bars(c, st.vals, st.x, 500, 300, 270, {
+                max: st.max, labels: ['z_1', 'z_2', 'z_3', 'z_4'], fmt: st.fmt,
+                colors: [C.q, C.k, C.v, C.acc], show, vsize: 20
+              });
+            }
+            if (k < 2) {
+              group(c, sm(t, st.a + 1200, st.a + 1800), () => {
+                arrow(c, st.x + 330, 330, st.x + 380, 330, { color: C.gold, lw: 4, head: 16 });
+                text(c, k === 0 ? 'exp' : 'normalize', st.x + 355, 300, { size: 20, align: 'center', color: C.gold, bold: true });
+              });
+            }
+          });
+          group(c, sm(t, 9000, 9800), () => tex(c, String.raw`\sum_i p_i = 1,\qquad p_i>0`, W / 2, 586, { size: 28, align: 'center' }));
+        }
+      },
+
+      /* ============ 2 ============ */
+      {
+        title: 'Scale controls sharpness', dur: 15000, accent: C.k,
+        caption: 'Multiply the logits by a scale s and the distribution sharpens. At large s it becomes one-hot. Unscaled attention logits act like a large s.',
+        notes: `<p><b>Temperature.</b> <i>softmax(s·z)</i> is the same as softmax at temperature 1/s. The entropy <i>H(p) = −Σ p<sub>i</sub> log p<sub>i</sub></i> measures how spread out the distribution is: it is at its maximum (log 5 ≈ 1.61 nats) for uniform weights and falls to 0 for a one-hot distribution.</p>`,
+        draw(c, t) {
+          const sc = Math.exp(Math.log(0.5) + (Math.log(20) - Math.log(0.5)) * seg(t, 1000, 13000));
+          const p = softmax(Z0.map((z) => sc * z));
+          bars(c, p, 120, 500, 620, 300, {
+            max: 1, fmt: (v) => fmt(v, 2), labels: ['k_1', 'k_2', 'k_3', 'k_4', 'k_5'],
+            colors: [C.q, C.k, C.v, C.acc, C.teal], vsize: 22, lsize: 22
+          });
+          tex(c, String.raw`\text{weights }p_i(s)`, 120, 150, { size: 26, anchor: 'mid', color: C.dim });
+          group(c, sm(t, 400, 1200), () => tex(c, String.raw`p_i(s)=\frac{e^{s\,z_i}}{\sum_j e^{s\,z_j}}`, 800, 178, { size: 30, anchor: 'mid' }));
+          text(c, `scale  s = ${fmt(sc, 2)}`, 800, 262, { size: 40, bold: true, color: C.gold });
+          text(c, `largest weight  max p = ${fmt(Math.max(...p), 3)}`, 800, 322, { size: 26, color: C.text });
+          text(c, `entropy  H(p) = ${fmt(entropy(p), 2)} nats`, 800, 362, { size: 26, color: C.text });
+          group(c, sm(t, 6000, 6800), () => tex(c, String.raw`H(p)=-\sum_i p_i\log p_i`, 800, 420, { size: 28, anchor: 'mid' }));
+          group(c, sm(t, 7500, 8400), () => para(c, 'Multiplying the logits by s acts like a temperature 1/s. Large s gives a near one-hot distribution.', 800, 456, 420, { size: 21, color: C.dim, lh: 30 }));
+        }
+      },
+
+      /* ============ 3 ============ */
+      {
+        title: 'Saturation: the flat region', dur: 12000, accent: C.hot,
+        caption: 'Past a point the top weight is almost 1 and barely changes. This is the flat region of softmax, where the slope is nearly zero.',
+        notes: `<p><b>Saturation.</b> <i>p<sub>max</sub>(s)</i> rises from about 0.3 to 1 as <i>s</i> grows, but the increase flattens out: beyond about <i>s ≈ ${S99.toFixed(1)}</i> the largest weight exceeds 0.99. The local slope <i>dp<sub>max</sub>/ds</i> is then nearly zero, and so is the gradient.</p>`,
+        draw(c, t) {
+          const pl = plot(c, 110, 180, 600, 320, {
+            xmin: 0, xmax: 20, ymin: 0, ymax: 1, xt: [0, 5, 10, 15, 20], yt: [0, 0.5, 1],
+            xlabel: '\\text{logit scale }s', ylabel: '\\max_i p_i'
+          });
+          // Saturated region
+          const xs = pl.X(S99);
+          card(c, xs, 180, pl.X(20) - xs, 320, { fill: 'rgba(255,107,107,0.12)', r: 0 });
+          text(c, 'saturated: flat, p ≈ one-hot', (xs + pl.X(20)) / 2, 200, { size: 20, bold: true, color: C.hot, align: 'center' });
+          const pts = [];
+          for (let s = 0; s <= 20; s += 0.2) pts.push([pl.X(s), pl.Y(pmaxAt(s))]);
+          line(c, pts, { color: C.gold, lw: 4, dash: null });
+          const sCur = 20 * sm(t, 600, 11000);
+          const pCur = pmaxAt(sCur);
+          line(c, [[pl.X(sCur), pl.Y(0)], [pl.X(sCur), pl.Y(pCur)]], { color: C.dim, lw: 2, dash: [6, 6] });
+          pt(c, pl.X(sCur), pl.Y(pCur), 11, C.gold);
+          text(c, `s = ${fmt(sCur, 1)},  max p = ${fmt(pCur, 3)}`, 110, 540, { size: 24, color: C.gold, bold: true });
+          // Current distribution as bars
+          const p = softmax(Z0.map((z) => sCur * z));
+          bars(c, p, 790, 470, 400, 220, { max: 1, fmt: (v) => fmt(v, 3), labels: ['1', '2', '3', '4', '5'], colors: [C.gold, C.dim, C.dim, C.dim, C.dim], vsize: 19, lsize: 20 });
+          text(c, 'current distribution', 990, 210, { size: 24, bold: true, align: 'center', color: C.text });
+          group(c, sm(t, 4000, 5000), () => tex(c, String.raw`\frac{\partial p_{\max}}{\partial s}\approx 0\quad\text{once }p_{\max}\approx 1`, 990, 262, { size: 26, anchor: 'mid', color: C.hot }));
+        }
+      },
+
+      /* ============ 4 ============ */
+      {
+        title: 'The softmax Jacobian', dur: 14000, accent: C.q,
+        caption: 'The gradient of softmax is its Jacobian: $\\partial p_i/\\partial z_j = p_i(\\delta_{ij}-p_j)$. Its entries are set by the probabilities themselves.',
+        notes: `<p><b>Jacobian.</b> <i>∂p<sub>i</sub>/∂z<sub>j</sub> = p<sub>i</sub>(δ<sub>ij</sub> − p<sub>j</sub>)</i>, which in matrix form is <i>J = diag(p) − p p<sup>T</sup></i>. Each entry is a product of probabilities, so when one probability is close to 1 the others are close to 0 and every entry is small. Case A is softmax(z), case B is softmax(6z).</p>`,
+        draw(c, t) {
+          tex(c, String.raw`J=\operatorname{diag}(p)-pp^{\top},\qquad \frac{\partial p_i}{\partial z_j}=p_i(\delta_{ij}-p_j)`, W / 2, 150, { size: 30, align: 'center', anchor: 'mid' });
+          const jac = (p) => p.map((pi, i) => p.map((pj, j) => pi * ((i === j ? 1 : 0) - pj)));
+          const JA = jac(PA), JB = jac(PB);
+          const frob = (M) => Math.sqrt(M.flat().reduce((a, v) => a + v * v, 0));
+          const panels = [
+            { x: 150, J: JA, p: PA, title: 'Case A: $s=1$, $p=\\mathrm{softmax}(z)$', col: C.teal, fn: frob(JA) },
+            { x: 700, J: JB, p: PB, title: 'Case B: $s=6$, $p=\\mathrm{softmax}(6z)$', col: C.hot, fn: frob(JB) }
+          ];
+          // grids are placed lower so the probability line above them stays clear
+          panels.forEach((P, k) => {
+            const a = sm(t, 300 + k * 3800, 900 + k * 3800);
+            group(c, a, () => {
+              rich(c, P.title, P.x - 30, 200, { size: 22, color: P.col, bold: true });
+              tex(c, String.raw`p=(${P.p.map((v) => fmt(v, 3)).join(', ')})`, P.x - 30, 232, { size: 20, anchor: 'mid', color: C.dim });
+            });
+            const reveal = (i, j) => sm(t, 1600 + k * 3800 + (i * 4 + j) * 180, 1600 + k * 3800 + (i * 4 + j) * 180 + 350);
+            grid(c, P.J, P.x, 288, 96, 52, {
+              max: 0.25, d: 3, size: 19, cmap: (v) => divMap(v, 0.25, C.hot, C.gold), ink: (v) => (Math.abs(v) / 0.25 > 0.45 ? C.ink : C.text),
+              show: reveal, rows: ['1', '2', '3', '4'], cols: ['1', '2', '3', '4'], lcolor: C.dim
+            });
+            group(c, sm(t, 5200 + k * 3000, 5800 + k * 3000), () => {
+              rich(c, `$\\lVert J\\rVert_F = ${fmt(P.fn, 3)}$`, P.x, 526, { size: 26, color: P.col, bold: true });
+            });
+          });
+          group(c, sm(t, 11300, 12200), () => {
+            para(c, 'With one probability near 1 (case B), every entry of J is near 0. The colour scale is the same in both grids.', 110, 560, 1060, { size: 21, color: C.dim, lh: 30 });
+          });
+        }
+      },
+
+      /* ============ 5 ============ */
+      {
+        title: 'Backprop through softmax', dur: 16000, accent: C.v,
+        caption: 'Backprop gives each logit its gradient: $p_j$ times $(g_j$ minus the weighted average of $g)$. A small $p_j$ kills the signal, and saturation kills it everywhere.',
+        notes: `<p><b>Vector–Jacobian product.</b> Given the upstream gradient <i>g = ∂L/∂p</i>, the gradient to the logits is <i>∂L/∂z<sub>j</sub> = Σ<sub>i</sub> g<sub>i</sub> p<sub>i</sub>(δ<sub>ij</sub> − p<sub>j</sub>) = p<sub>j</sub>(g<sub>j</sub> − Σ<sub>i</sub> p<sub>i</sub> g<sub>i</sub>)</i>. The term Σ p<sub>i</sub>g<sub>i</sub> is the average upstream gradient under the weights. Because every term carries a factor p<sub>j</sub>, saturation shrinks the whole gradient.</p>`,
+        draw(c, t) {
+          // Upstream gradient
+          rich(c, '$g=\\partial L/\\partial p$', 110, 166, { size: 24, color: C.text });
+          grid(c, [G], 330, 146, 92, 44, { max: 1, d: 2, size: 20, cmap: (v) => divMap(v, 1, C.hot, C.v), ink: () => C.text, rows: [], cols: ['1', '2', '3', '4'], lcolor: C.dim });
+          tex(c, String.raw`\frac{\partial L}{\partial z_j}=p_j\big(g_j-\mathrm{avg}\big),\qquad \mathrm{avg}=\sum_i p_i g_i`, 800, 166, { size: 26, anchor: 'mid' });
+          const cases = [
+            { x: 80, p: PA, name: 'Case A: $s=1$', col: C.teal },
+            { x: 650, p: PB, name: 'Case B: $s=6$', col: C.hot }
+          ];
+          const result = [];
+          cases.forEach((cs, k) => {
+            const pb = cs.p, gb = vdot(pb, G), diff = G.map((g) => g - gb), dz = gradZ(pb, G);
+            result.push({ dz, nrm: norm(dz) });
+            const t0 = 1200 + k * 6400;
+            const a = sm(t, t0 - 600, t0);
+            group(c, a, () => rich(c, cs.name + '   $\\mathrm{avg}=' + fmt(gb, 3) + '$', cs.x, 244, { size: 22, color: cs.col, bold: true }));
+            const hdr = ['$p_j$', '$g_j-\\mathrm{avg}$', '$\\partial L/\\partial z_j$'];
+            hdr.forEach((h, m) => group(c, a, () => rich(c, h, cs.x + 110 + m * 90 + 6, 276, { size: 18, color: C.dim })));
+            for (let j = 0; j < 4; j++) {
+              const rj = sm(t, t0 + j * 700, t0 + j * 700 + 500);
+              const y = 294 + j * 52;
+              group(c, rj, () => lab(c, `j{=}${j + 1}`, cs.x + 80, y + 24, { size: 19, color: C.dim }));
+              grid(c, [[pb[j], diff[j], dz[j]]], cs.x + 110, y, 90, 44, {
+                max: 0.4, d: 3, size: 18,
+                cmap: (v, i, jj) => (jj === 0 ? seqMap(v) : jj === 1 ? divMap(v, 1.3, C.hot, C.v) : divMap(v, 0.3, C.hot, C.v)),
+                ink: (v) => (Math.abs(v) > 0.2 ? C.ink : C.text),
+                show: (_, m) => rj
+              });
+            }
+            const nrm = norm(dz);
+            group(c, sm(t, t0 + 3200, t0 + 3900), () => {
+              tex(c, String.raw`\big\lVert \partial L/\partial z\big\rVert = ${sciTex(nrm)}`, cs.x + 110, 516, { size: 24, anchor: 'mid', color: cs.col });
+            });
+          });
+          group(c, sm(t, 12500, 13300), () => {
+            text(c, `Case B's gradient is ${fmt(result[0].nrm / result[1].nrm, 0)}× smaller than case A's: the signal to W_Q and W_K is almost gone.`, 80, 560, { size: 22, color: C.gold, bold: true });
+          });
+        }
+      },
+
+      /* ============ 6 ============ */
+      {
+        title: 'Gradient magnitude versus logit scale', dur: 14000, accent: C.hot,
+        caption: 'As the logit scale grows, the gradient shrinks exponentially. Learning stalls exactly where attention is most in need of changing.',
+        notes: `<p><b>Exponential decay.</b> For large <i>s</i> the probabilities are approximately one-hot at the largest logit, and the other probabilities decay like e<sup>−s·Δz</sup>. Every gradient component carries one of these factors, so the gradient norm falls exponentially with s. The plot shows log₁₀ of the gradient norm for the fixed upstream gradient <i>g</i>.</p>`,
+        draw(c, t) {
+          const pl = plot(c, 110, 170, 640, 340, {
+            xmin: 0, xmax: 12, ymin: -6, ymax: 0, xt: [0, 2, 4, 6, 8, 10, 12], yt: [-6, -4, -2, 0],
+            xlabel: '\\text{logit scale }s', ylabel: '\\log_{10}\\lVert\\partial L/\\partial z\\rVert'
+          });
+          const sat = pl.X(4);
+          card(c, sat, 170, pl.X(12) - sat, 340, { fill: 'rgba(255,107,107,0.10)', r: 0 });
+          text(c, 'saturated region', (sat + pl.X(12)) / 2, 190, { size: 20, bold: true, color: C.hot, align: 'center' });
+          const pts = [];
+          for (let s = 0.2; s <= 12.0001; s += 0.1) pts.push([pl.X(s), pl.Y(logNormAt(s))]);
+          const reveal = Math.floor(seg(t, 500, 12000) * pts.length);
+          line(c, pts.slice(0, Math.max(2, reveal)), { color: C.gold, lw: 4 });
+          const sCur = 0.2 + (12 - 0.2) * sm(t, 500, 12000);
+          const nCur = Math.pow(10, logNormAt(sCur));
+          pt(c, pl.X(sCur), pl.Y(logNormAt(sCur)), 11, C.gold);
+          group(c, sm(t, 800, 1500), () => tex(c, String.raw`s=${fmt(sCur, 2)}`, pl.X(sCur) + 16, pl.Y(logNormAt(sCur)) - 26, { size: 24, color: C.gold, anchor: 'mid' }));
+          // Readouts
+          const pCur = softmax(Z.map((z) => sCur * z));
+          group(c, sm(t, 600, 1200), () => tex(c, String.raw`\frac{\partial L}{\partial z_j}=p_j\Big(g_j-\sum_i p_i g_i\Big)`, 800, 200, { size: 28, anchor: 'mid' }));
+          text(c, `max p = ${fmt(Math.max(...pCur), 4)}`, 800, 290, { size: 26, color: C.text });
+          group(c, sm(t, 1200, 1800), () => tex(c, String.raw`\lVert\partial L/\partial z\rVert=${sciTex(nCur)}`, 800, 340, { size: 26, anchor: 'mid', color: C.gold }));
+          group(c, sm(t, 6000, 7000), () => para(c, 'Gradients to $W_Q$ and $W_K$ pass through this factor. In the saturated region they are essentially zero, so the attention pattern stops changing.', 800, 400, 420, { size: 22, color: C.text, lh: 32 }));
+        }
+      },
+
+      /* ============ 7 ============ */
+      {
+        title: 'In attention: the $d_k=64$ example', dur: 14000, accent: C.k,
+        caption: `With $d_k=64$ and no scaling, the largest weight is ${fmt(TOPU, 2)}: one key takes essentially all of it. Dividing by $\\sqrt{64}=8$ brings it down to ${fmt(TOPS, 2)}.`,
+        notes: `<p><b>Concrete case.</b> The eight logits are drawn with standard deviation 8 (= √64), as unscaled dot products of 64-dimensional unit-variance vectors would be. The right panel divides by 8. The largest weight is ${fmt(TOPU, 2)} unscaled and ${fmt(TOPS, 2)} after scaling. Scaling is not the whole story: the logits are still spread, so the scaled weights are only moderately peaked. The numbers come from a fixed random seed so the picture is reproducible.</p>`,
+        draw(c, t) {
+          const topU = Math.max(...WU), topS = Math.max(...WS);
+          rich(c, 'unscaled: $q\\cdot k$, with $\\sigma=8$', 70, 178, { size: 24, color: C.hot, bold: true });
+          rich(c, 'scaled: $(q\\cdot k)/\\sqrt{64}$', 660, 178, { size: 24, color: C.v, bold: true });
+          bars(c, WU, 80, 480, 500, 240, {
+            max: 1, fmt: (v) => fmt(v, 2), labels: KEYLBL, colors: WU.map((_, i) => (i === WU.indexOf(topU) ? C.hot : C.dim)),
+            show: (i) => sm(t, 800 + i * 150, 1400 + i * 150), vsize: 19, lsize: 18
+          });
+          bars(c, WS, 660, 480, 540, 240, {
+            max: 1, fmt: (v) => fmt(v, 2), labels: KEYLBL, colors: WS.map((_, i) => (i === WS.indexOf(topS) ? C.v : C.dim)),
+            show: (i) => sm(t, 5000 + i * 150, 5600 + i * 150), vsize: 19, lsize: 18
+          });
+          group(c, sm(t, 3000, 3800), () => text(c, `largest weight = ${fmt(topU, 2)}`, 330, 550, { size: 24, bold: true, color: C.hot, align: 'center' }));
+          group(c, sm(t, 8600, 9400), () => text(c, `largest weight = ${fmt(topS, 2)}`, 930, 550, { size: 24, bold: true, color: C.v, align: 'center' }));
+          group(c, sm(t, 10000, 10800), () => tex(c, String.raw`s_{ij}=\frac{q_i\cdot k_j}{\sqrt{d_k}}`, W / 2, 582, { size: 30, align: 'center' }));
+        }
+      },
+
+      /* ============ 8 ============ */
+      {
+        title: 'Numerical stability: subtract the maximum', dur: 12000, accent: C.gold,
+        caption: 'Subtract the maximum logit before exponentiating. Softmax is shift-invariant, so the result is unchanged, but exp can no longer overflow.',
+        notes: `<p><b>Shift invariance.</b> <i>softmax(z − c·1) = softmax(z)</i> for any constant c, because the factor e<sup>−c</sup> cancels in numerator and denominator. Choosing c = max z keeps every exponent ≤ 0, so exp is at most 1. Float32 overflows above about 88.7 and underflows to exactly 0 below about −104. Underflowed probabilities also have zero gradient.</p>`,
+        draw(c, t) {
+          const zs = [1000, 999, 998];
+          const mx = Math.max(...zs);
+          const stab = zs.map((z) => z - mx);
+          const ex = stab.map(Math.exp);
+          const pst = softmax(zs);
+          // Left: naive
+          rich(c, 'naive: $e^{z_i}$ with $z=(1000,\\,999,\\,998)$', 70, 178, { size: 22, color: C.hot, bold: true });
+          zs.forEach((z, i) => {
+            const a = sm(t, 600 + i * 300, 1100 + i * 300);
+            group(c, a, () => {
+              card(c, 110 + i * 150, 430 - 240, 110, 240, { fill: C.panel2, stroke: C.hot, lw: 2, r: 12 });
+              text(c, '∞', 165 + i * 150, 360, { size: 60, bold: true, align: 'center', color: C.hot });
+              lab(c, `e^{${z}}`, 165 + i * 150, 470, { size: 22, color: C.text });
+            });
+          });
+          group(c, sm(t, 2000, 2600), () => {
+            card(c, 110, 500, 420, 60, { fill: 'rgba(255,107,107,0.15)', stroke: C.hot, lw: 2.5, r: 14 });
+            text(c, '∞ / ∞ = NaN  (overflow)', 320, 530, { size: 26, bold: true, align: 'center', color: C.hot });
+          });
+          // Right: stable
+          rich(c, 'stable: $e^{z_i-\\max\\,z}$', 680, 178, { size: 22, color: C.v, bold: true });
+          stab.forEach((s, i) => {
+            const a = sm(t, 3200 + i * 400, 3800 + i * 400);
+            group(c, a, () => {
+              const h = clamp(ex[i]) * 200;
+              card(c, 720 + i * 150, 430 - h, 110, h, { fill: C.v, r: 10 });
+              lab(c, `${fmt(s, 0)}`, 775 + i * 150, 452, { size: 22, color: C.text });
+              text(c, fmt(ex[i], 3), 775 + i * 150, 430 - h - 20, { size: 22, color: C.v, bold: true, align: 'center' });
+            });
+          });
+          group(c, sm(t, 5000, 5800), () => {
+            text(c, `softmax = (${pst.map((v) => fmt(v, 3)).join(', ')})`, 680, 520, { size: 24, color: C.v, bold: true });
+          });
+          group(c, sm(t, 6200, 7000), () => tex(c, String.raw`\operatorname{softmax}(z)=\operatorname{softmax}(z-c\mathbf{1}),\qquad c=\max_j z_j`, W / 2, 586, { size: 28, align: 'center' }));
+        }
+      },
+
+      /* ============ 9 ============ */
+      {
+        title: 'Recap: why scaling keeps learning alive', dur: 10000, accent: C.v,
+        caption: 'Unscaled logits saturate softmax and starve $W_Q$ and $W_K$ of gradient. Scaling by $1/\\sqrt{d_k}$ keeps logits $O(1)$, so softmax stays in its useful range.',
+        notes: `<p><b>Summary.</b> Unscaled attention logits have spread √d<sub>k</sub>. That pushes softmax into its saturated, flat region where ∂p/∂z ≈ 0 and the gradient to the query and key projections vanishes. Dividing by √d<sub>k</sub> and subtracting the maximum inside softmax are the two standard fixes. Modern LLMs add further stabilizers such as QK-normalization.</p>`,
+        draw(c, t) {
+          const rowsDef = [
+            { y: 200, title: 'Without scaling', col: C.hot, steps: ['logits spread $\\sim\\sqrt{d_k}$', 'softmax saturates', '$\\partial p/\\partial z\\to 0$', '$W_Q, W_K$ stop learning'] },
+            { y: 370, title: 'With $1/\\sqrt{d_k}$', col: C.v, steps: ['logits are $O(1)$', 'softmax stays soft', '$\\partial p/\\partial z$ healthy', '$W_Q, W_K$ keep learning'] }
+          ];
+          rowsDef.forEach((row, r) => {
+            const a = sm(t, r * 3600, r * 3600 + 800);
+            group(c, a, () => rich(c, row.title, 100, row.y - 34, { size: 24, color: row.col, bold: true }));
+            row.steps.forEach((s, i) => {
+              const ai = sm(t, r * 3600 + 900 + i * 700, r * 3600 + 1500 + i * 700);
+              const x = 100 + i * 280;
+              group(c, ai, () => {
+                card(c, x, row.y, 240, 100, { fill: C.panel, stroke: row.col, lw: 2.5, r: 16 });
+                rich(c, s, x + 16, row.y + 50, { size: 21, color: C.text });
+              });
+              if (i < 3) {
+                group(c, sm(t, r * 3600 + 1200 + i * 700, r * 3600 + 1600 + i * 700), () => arrow(c, x + 246, row.y + 50, x + 274, row.y + 50, { color: row.col, lw: 3, head: 10 }));
+              }
+            });
+          });
+          group(c, sm(t, 7600, 8400), () => tex(c, String.raw`\text{Fix: }\mathrm{softmax}\left(\frac{QK^{\top}}{\sqrt{d_k}}-c\mathbf{1}\right)`, W / 2, 540, { size: 30, align: 'center' }));
+        }
+      }
+    ]
+  });
+})();
+</script>
+</body>
+</html>
