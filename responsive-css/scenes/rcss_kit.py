@@ -425,6 +425,9 @@ class RScene(Scene):
         if mobs:
             self.play(*(FadeOut(m) for m in mobs), run_time=run_time)
         self._tag = None if getattr(self, "_tag", None) not in keep else self._tag
+        # the caption is gone too; a later FadeOut of it would re-add it for a moment
+        if getattr(self, "_cap", None) not in keep:
+            self._cap = None
 
     def say(self, s, size=26, color=MUTED, t2c=None, wait=0.0, run_time=0.6):
         """Swap the bottom caption."""
