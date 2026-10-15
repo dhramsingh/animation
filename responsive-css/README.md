@@ -4,9 +4,9 @@ Three graduate-level animations on choosing media-query breakpoints, built with 
 
 | # | Video | Length | Question it answers |
 |---|-------|--------|---------------------|
-| 1 | [Why device breakpoints are mathematically doomed](exports/01-device-breakpoints-are-doomed.mp4) | __V1__ | Why is `max-width: 768px` "for the iPad" a losing strategy? |
-| 2 | [Content-driven breakpoints](exports/02-content-driven-breakpoints.mp4) | __V2__ | What is a content-driven breakpoint, and how do you find its exact value? |
-| 3 | [Why media queries belong in em](exports/03-em-media-queries.mp4) | __V3__ | What do `em`/`rem` breakpoints buy you, and how do they protect readers who enlarge their default font size? |
+| 1 | [Why device breakpoints are mathematically doomed](exports/01-device-breakpoints-are-doomed.mp4) | 4:26 | Why is `max-width: 768px` "for the iPad" a losing strategy? |
+| 2 | [Content-driven breakpoints](exports/02-content-driven-breakpoints.mp4) | 4:06 | What is a content-driven breakpoint, and how do you find its exact value? |
+| 3 | [Why media queries belong in em](exports/03-em-media-queries.mp4) | 3:54 | What do `em`/`rem` breakpoints buy you, and how do they protect readers who enlarge their default font size? |
 
 All three are 1920×1080 at 30 fps, H.264, with no audio.
 
