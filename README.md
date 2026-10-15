@@ -40,3 +40,7 @@ The exporter needs `ffmpeg` on the PATH. It seeks each frame exactly, so timing 
 ## Status
 
 The course spec `prompts/prompt-js-2d.md` in `dataEdge/animationproject` could not be read when these were built, so the format follows the brief in the request. Share that file and the animations can be adjusted to it.
+
+## Also in this repository
+
+- [`responsive-css/`](responsive-css/): three ManimGL animations on media-query breakpoints, covering why device breakpoints are doomed, content-driven breakpoints, and why media queries belong in em. 1080p MP4s are in `responsive-css/exports/`.

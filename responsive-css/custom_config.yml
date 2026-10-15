@@ -1,0 +1,15 @@
+# ManimGL configuration for the responsive-CSS series.
+# Run manimgl from this directory (render.sh does) so this file is picked up.
+directories:
+  subdirs:
+    output: "build"
+camera:
+  background_color: "#0B0F14"
+  fps: 30
+tex:
+  # The "default" template needs dsfont (texlive-fonts-extra). "basic" only
+  # needs amsmath/amssymb/xcolor, which every TeX install has.
+  template: "basic"
+text:
+  font: "Inter"
+  alignment: "LEFT"
