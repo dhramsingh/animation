@@ -127,7 +127,18 @@
   "C13Detector": 125,
   "C13Report": 126,
   "C13Habits": 127,
-  "C13Recap": 128
+  "C13Recap": 128,
+  "C14Opener": 129,
+  "C14Why": 130,
+  "C14Timeout": 131,
+  "C14Tree": 132,
+  "C14Inside": 133,
+  "C14Listen": 134,
+  "C14Cause": 135,
+  "C14AfterFunc": 136,
+  "C14Values": 137,
+  "C14Rules": 138,
+  "C14Recap": 139
  },
  "order": [
   [
@@ -641,6 +652,50 @@
   [
    "ch13_memory",
    "C13Recap"
+  ],
+  [
+   "ch14_context",
+   "C14Opener"
+  ],
+  [
+   "ch14_context",
+   "C14Why"
+  ],
+  [
+   "ch14_context",
+   "C14Timeout"
+  ],
+  [
+   "ch14_context",
+   "C14Tree"
+  ],
+  [
+   "ch14_context",
+   "C14Inside"
+  ],
+  [
+   "ch14_context",
+   "C14Listen"
+  ],
+  [
+   "ch14_context",
+   "C14Cause"
+  ],
+  [
+   "ch14_context",
+   "C14AfterFunc"
+  ],
+  [
+   "ch14_context",
+   "C14Values"
+  ],
+  [
+   "ch14_context",
+   "C14Rules"
+  ],
+  [
+   "ch14_context",
+   "C14Recap"
   ]
  ],
  "chapters": {},
@@ -772,7 +827,18 @@
   "C13Detector": "The race detector: -race",
   "C13Report": "Reading a race report",
   "C13Habits": "Race-free by habit: common races and their fixes",
-  "C13Recap": "Recap and check yourself"
+  "C13Recap": "Recap and check yourself",
+  "C14Opener": "C14Opener",
+  "C14Why": "The problem: work that outlives its purpose",
+  "C14Timeout": "WithTimeout: a time budget for everything below",
+  "C14Tree": "The context tree: cancellation flows down",
+  "C14Inside": "Inside package context: three small structs",
+  "C14Listen": "Making code cancellable: three shapes",
+  "C14Cause": "Saying why: WithCancelCause and Cause",
+  "C14AfterFunc": "AfterFunc and WithoutCancel (Go 1.21)",
+  "C14Values": "Context values: request-scoped data only",
+  "C14Rules": "Rules of the road, and where context already lives",
+  "C14Recap": "Recap and check yourself"
  },
- "count": 128
+ "count": 139
 }

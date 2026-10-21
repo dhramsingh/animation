@@ -11,7 +11,7 @@ var errQuota = errors.New("tenant quota exceeded")
 
 func main() {
 	ctx, cancel := context.WithCancelCause(context.Background())
-	cancel(errQuota) // cancel AND record why
+	cancel(errQuota)                          // cancel AND record why
 	fmt.Println("Err:  ", ctx.Err())          // always context.Canceled
 	fmt.Println("Cause:", context.Cause(ctx)) // the reason we gave
 

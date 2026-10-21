@@ -1,0 +1,2 @@
+$ go vet .
+main.go:12:7: the cancel function returned by context.WithTimeout should be called, not discarded, to avoid a context leak

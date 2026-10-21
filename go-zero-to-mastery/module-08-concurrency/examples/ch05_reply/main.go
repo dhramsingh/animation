@@ -19,7 +19,7 @@ func main() {
 	go server(reqs)
 	for _, n := range []int{3, 4, 5} {
 		r := request{n, make(chan int)}
-		reqs <- r // ask...
+		reqs <- r                               // ask...
 		fmt.Println(n, "squared is", <-r.reply) // ...and wait
 	}
 	close(reqs)

@@ -1,0 +1,7 @@
+$ go run .
+stopped at step 36831232: context deadline exceeded
+is DeadlineExceeded: true
+got 0
+got 1
+got 2
+producer stopped and closed its channel

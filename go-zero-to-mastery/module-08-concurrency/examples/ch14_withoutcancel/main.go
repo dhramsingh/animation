@@ -9,7 +9,8 @@ import (
 type key struct{}
 
 func main() {
-	req, cancel := context.WithCancel(context.WithValue(context.Background(), key{}, "req-42"))
+	base := context.WithValue(context.Background(), key{}, "req-42")
+	req, cancel := context.WithCancel(base)
 	audit := context.WithoutCancel(req) // keeps values, drops cancellation
 	cancel()                            // the request is finished
 
