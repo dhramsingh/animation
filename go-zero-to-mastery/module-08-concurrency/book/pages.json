@@ -173,7 +173,17 @@
   "C18BubbleLeak": 171,
   "C18Race": 172,
   "C18Design": 173,
-  "C18Recap": 174
+  "C18Recap": 174,
+  "C19Opener": 175,
+  "C19Design": 176,
+  "C19Fetch": 177,
+  "C19Workers": 178,
+  "C19Coordinator": 179,
+  "C19Run": 180,
+  "C19Test": 181,
+  "C19Review": 182,
+  "C19Exercises": 183,
+  "C19Recap": 184
  },
  "order": [
   [
@@ -871,6 +881,46 @@
   [
    "ch18_testing",
    "C18Recap"
+  ],
+  [
+   "ch19_capstone",
+   "C19Opener"
+  ],
+  [
+   "ch19_capstone",
+   "C19Design"
+  ],
+  [
+   "ch19_capstone",
+   "C19Fetch"
+  ],
+  [
+   "ch19_capstone",
+   "C19Workers"
+  ],
+  [
+   "ch19_capstone",
+   "C19Coordinator"
+  ],
+  [
+   "ch19_capstone",
+   "C19Run"
+  ],
+  [
+   "ch19_capstone",
+   "C19Test"
+  ],
+  [
+   "ch19_capstone",
+   "C19Review"
+  ],
+  [
+   "ch19_capstone",
+   "C19Exercises"
+  ],
+  [
+   "ch19_capstone",
+   "C19Recap"
   ]
  ],
  "chapters": {},
@@ -1048,7 +1098,17 @@
   "C18BubbleLeak": "The bubble catches leaks and deadlocks",
   "C18Race": "Run tests with -race, many times, on many Ps",
   "C18Design": "Designing concurrent code to be testable",
-  "C18Recap": "Recap and check yourself"
+  "C18Recap": "Recap and check yourself",
+  "C19Opener": "C19Opener",
+  "C19Design": "The design: one owner, many workers",
+  "C19Fetch": "The fake web and the fetcher",
+  "C19Workers": "The worker pool: rate-limited, cancellable",
+  "C19Coordinator": "The coordinator: a select that switches cases on and off",
+  "C19Run": "Running it: with a budget, and with a tight deadline",
+  "C19Test": "Proving it: a race-free, leak-free test in fake time",
+  "C19Review": "A review checklist for any concurrent Go code",
+  "C19Exercises": "Extend the crawler: exercises",
+  "C19Recap": "Recap: the whole module in one program"
  },
- "count": 174
+ "count": 184
 }

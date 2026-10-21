@@ -1,0 +1,9 @@
+$ go test -v -race .
+=== RUN   TestCrawl
+    crawl_test.go:19: 10 pages in 100ms of fake time
+--- PASS: TestCrawl (0.00s)
+=== RUN   TestCrawlDeadline
+    crawl_test.go:29: deadline: 4 pages, returned after 30ms
+--- PASS: TestCrawlDeadline (0.00s)
+PASS
+ok  	gozm/module08/ch19_crawltest	1.018s

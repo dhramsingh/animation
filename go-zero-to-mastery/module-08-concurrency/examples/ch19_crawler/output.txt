@@ -14,9 +14,8 @@ crawl with a 2s budget:
 crawl with a 50ms budget:
   depth 0  /           3 links
   depth 1  /docs       2 links
-  depth 1  /go         3 links
-  depth 1  /blog       context deadline exceeded
+  depth 1  /go         context deadline exceeded
   depth 2  /docs/mem   context deadline exceeded
-  depth 2  /go/select  context deadline exceeded
   depth 2  /go/chan    context deadline exceeded
-  => 7 pages in 50ms
+  depth 1  /blog       context deadline exceeded
+  => 6 pages in 50ms
