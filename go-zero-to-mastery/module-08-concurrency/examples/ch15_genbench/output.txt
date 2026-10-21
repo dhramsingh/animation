@@ -1,0 +1,10 @@
+$ go test -bench=. -benchmem
+goos: linux
+goarch: amd64
+pkg: gozm/module08/ch15_genbench
+cpu: Intel(R) Xeon(R) Processor @ 2.10GHz
+BenchmarkChannel-4        	 4602999	       250.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkChannelBuf64-4   	21313294	        62.70 ns/op	       0 B/op	       0 allocs/op
+BenchmarkIterator-4       	1000000000	         0.3629 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	gozm/module08/ch15_genbench	3.238s

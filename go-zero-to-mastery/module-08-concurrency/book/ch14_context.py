@@ -66,7 +66,7 @@ class C14Why(Page):
                     ("DB query", T.GO, [(0.1, stop_at, "", T.GO)]),
                     ("API call", T.GO, [(0.15, stop_at + 0.3 if stop_at > 2 else stop_at, "", T.GO)])]
             for i, (lab, c, segs) in enumerate(rows):
-                yy = y - 0.15 - i * 0.42
+                yy = y - 0.15 - i * 0.37
                 self.add(txt(lab, size=12, color=T.TEXT2).move_to(P(x0 - 0.12, yy), aligned_edge=RIGHT))
                 for a, b, sl, sc in segs:
                     if b > 1 and i >= 2:
@@ -75,9 +75,9 @@ class C14Why(Page):
                     else:
                         self.add(seg(x0 + a * unit, x0 + min(b, 1) * unit, yy, sc, h=0.28, lab=sl, size=11))
             xl = x0 + unit
-            self.add(Line(P(xl, y + 0.1), P(xl, y - 1.55)).set_stroke(T.YELLOW, 1.8))
+            self.add(Line(P(xl, y + 0.1), P(xl, y - 1.4)).set_stroke(T.YELLOW, 1.8))
             self.add(txt("client disconnects", size=11, color=T.YELLOW).move_to(P(xl + 0.08, y + 0.2), aligned_edge=LEFT))
-            return y - 1.75
+            return y - 1.6
 
         y = lanes(Y0 - 0.62, "Without a context: goroutines keep running", 4.3, T.RED)
         y = lanes(y - 0.45, "With a context: one cancel stops them all", 1.0, T.GREEN)

@@ -138,7 +138,17 @@
   "C14AfterFunc": 136,
   "C14Values": 137,
   "C14Rules": 138,
-  "C14Recap": 139
+  "C14Recap": 139,
+  "C15Opener": 140,
+  "C15Generator": 141,
+  "C15Iter": 142,
+  "C15Pipeline": 143,
+  "C15FanInOut": 144,
+  "C15WorkerPool": 145,
+  "C15Semaphore": 146,
+  "C15Ordered": 147,
+  "C15Choose": 148,
+  "C15Recap": 149
  },
  "order": [
   [
@@ -696,6 +706,46 @@
   [
    "ch14_context",
    "C14Recap"
+  ],
+  [
+   "ch15_patterns",
+   "C15Opener"
+  ],
+  [
+   "ch15_patterns",
+   "C15Generator"
+  ],
+  [
+   "ch15_patterns",
+   "C15Iter"
+  ],
+  [
+   "ch15_patterns",
+   "C15Pipeline"
+  ],
+  [
+   "ch15_patterns",
+   "C15FanInOut"
+  ],
+  [
+   "ch15_patterns",
+   "C15WorkerPool"
+  ],
+  [
+   "ch15_patterns",
+   "C15Semaphore"
+  ],
+  [
+   "ch15_patterns",
+   "C15Ordered"
+  ],
+  [
+   "ch15_patterns",
+   "C15Choose"
+  ],
+  [
+   "ch15_patterns",
+   "C15Recap"
   ]
  ],
  "chapters": {},
@@ -838,7 +888,17 @@
   "C14AfterFunc": "AfterFunc and WithoutCancel (Go 1.21)",
   "C14Values": "Context values: request-scoped data only",
   "C14Rules": "Rules of the road, and where context already lives",
-  "C14Recap": "Recap and check yourself"
+  "C14Recap": "Recap and check yourself",
+  "C15Opener": "C15Opener",
+  "C15Generator": "Generator: a goroutine that produces a stream",
+  "C15Iter": "Generator or iterator? Measure first",
+  "C15Pipeline": "Pipeline: stages connected by channels",
+  "C15FanInOut": "Fan-out and fan-in",
+  "C15WorkerPool": "Worker pool: a fixed team pulls from a queue",
+  "C15Semaphore": "Semaphore: at most N at a time",
+  "C15Ordered": "Results in order, computed in any order",
+  "C15Choose": "Patterns at a glance",
+  "C15Recap": "Recap and check yourself"
  },
- "count": 139
+ "count": 149
 }
