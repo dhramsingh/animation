@@ -7,14 +7,15 @@ import (
 
 func main() {
 	tick := time.NewTicker(100 * time.Millisecond)
-	defer tick.Stop()
+	defer tick.Stop() // release the ticker
 	stop := time.After(450 * time.Millisecond)
 	start := time.Now()
 
 	for {
 		select {
 		case t := <-tick.C:
-			fmt.Printf("tick at +%dms\n", t.Sub(start).Round(10*time.Millisecond).Milliseconds())
+			ms := t.Sub(start).Round(10 * time.Millisecond)
+			fmt.Printf("tick at +%v\n", ms)
 		case <-stop:
 			fmt.Println("stop")
 			return

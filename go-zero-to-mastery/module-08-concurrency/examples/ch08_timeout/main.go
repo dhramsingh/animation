@@ -6,7 +6,7 @@ import (
 )
 
 func slowQuery(d time.Duration) <-chan string {
-	out := make(chan string, 1) // buffered: the sender never leaks
+	out := make(chan string, 1) // cap 1: the send never blocks
 	go func() {
 		time.Sleep(d)
 		out <- fmt.Sprintf("result after %v", d)
@@ -15,7 +15,8 @@ func slowQuery(d time.Duration) <-chan string {
 }
 
 func main() {
-	for _, d := range []time.Duration{50 * time.Millisecond, 300 * time.Millisecond} {
+	for _, ms := range []int{50, 300} {
+		d := time.Duration(ms) * time.Millisecond
 		select {
 		case r := <-slowQuery(d):
 			fmt.Println("ok:", r)

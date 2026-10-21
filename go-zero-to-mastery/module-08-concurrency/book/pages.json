@@ -66,7 +66,32 @@
   "C7Sudog": 64,
   "C7Story": 65,
   "C7Close": 66,
-  "C7Recap": 67
+  "C7Recap": 67,
+  "C8Opener": 68,
+  "C8Rules": 69,
+  "C8Timeout": 70,
+  "C8NonBlocking": 71,
+  "C8NilTrick": 72,
+  "C8Fairness": 73,
+  "C8Selectgo": 74,
+  "C8Timers": 75,
+  "C8ForSelect": 76,
+  "C8Recap": 77,
+  "C9Opener": 78,
+  "C9Why": 79,
+  "C9GMP": 80,
+  "C9BigPicture": 81,
+  "C9Gomaxprocs": 82,
+  "C9Schedule": 83,
+  "C9Recap": 84,
+  "C10Opener": 85,
+  "C10Runq": 86,
+  "C10Steal": 87,
+  "C10Syscalls": 88,
+  "C10Netpoll": 89,
+  "C10Sysmon": 90,
+  "C10Schedtrace": 91,
+  "C10Recap": 92
  },
  "order": [
   [
@@ -336,6 +361,106 @@
   [
    "ch07_inside",
    "C7Recap"
+  ],
+  [
+   "ch08_select",
+   "C8Opener"
+  ],
+  [
+   "ch08_select",
+   "C8Rules"
+  ],
+  [
+   "ch08_select",
+   "C8Timeout"
+  ],
+  [
+   "ch08_select",
+   "C8NonBlocking"
+  ],
+  [
+   "ch08_select",
+   "C8NilTrick"
+  ],
+  [
+   "ch08_select",
+   "C8Fairness"
+  ],
+  [
+   "ch08_select",
+   "C8Selectgo"
+  ],
+  [
+   "ch08_select",
+   "C8Timers"
+  ],
+  [
+   "ch08_select",
+   "C8ForSelect"
+  ],
+  [
+   "ch08_select",
+   "C8Recap"
+  ],
+  [
+   "ch09_scheduler1",
+   "C9Opener"
+  ],
+  [
+   "ch09_scheduler1",
+   "C9Why"
+  ],
+  [
+   "ch09_scheduler1",
+   "C9GMP"
+  ],
+  [
+   "ch09_scheduler1",
+   "C9BigPicture"
+  ],
+  [
+   "ch09_scheduler1",
+   "C9Gomaxprocs"
+  ],
+  [
+   "ch09_scheduler1",
+   "C9Schedule"
+  ],
+  [
+   "ch09_scheduler1",
+   "C9Recap"
+  ],
+  [
+   "ch10_scheduler2",
+   "C10Opener"
+  ],
+  [
+   "ch10_scheduler2",
+   "C10Runq"
+  ],
+  [
+   "ch10_scheduler2",
+   "C10Steal"
+  ],
+  [
+   "ch10_scheduler2",
+   "C10Syscalls"
+  ],
+  [
+   "ch10_scheduler2",
+   "C10Netpoll"
+  ],
+  [
+   "ch10_scheduler2",
+   "C10Sysmon"
+  ],
+  [
+   "ch10_scheduler2",
+   "C10Schedtrace"
+  ],
+  [
+   "ch10_scheduler2",
+   "C10Recap"
   ]
  ],
  "chapters": {},
@@ -406,7 +531,32 @@
   "C7Sudog": "Parking: sudog, gopark and goready",
   "C7Story": "Storyboard: a fast producer meets a slow consumer",
   "C7Close": "closechan: wake everybody, then step back",
-  "C7Recap": "Recap and check yourself"
+  "C7Recap": "Recap and check yourself",
+  "C8Opener": "C8Opener",
+  "C8Rules": "select: proceed with the first ready operation",
+  "C8Timeout": "Timeouts: race the work against a timer",
+  "C8NonBlocking": "Non-blocking operations: select with default",
+  "C8NilTrick": "Switching cases off with nil channels",
+  "C8Fairness": "Is select fair? We measured it",
+  "C8Selectgo": "Under the hood: selectgo in three passes",
+  "C8Timers": "Timers and tickers",
+  "C8ForSelect": "The for-select loop: a goroutine's main loop",
+  "C8Recap": "Recap and check yourself",
+  "C9Opener": "C9Opener",
+  "C9Why": "Why Go schedules goroutines itself",
+  "C9GMP": "Meet G, M and P",
+  "C9BigPicture": "The big picture",
+  "C9Gomaxprocs": "GOMAXPROCS: how many Ps",
+  "C9Schedule": "One turn of the scheduler: schedule() and findRunnable()",
+  "C9Recap": "Recap and check yourself",
+  "C10Opener": "C10Opener",
+  "C10Runq": "Where a new goroutine goes",
+  "C10Steal": "Work stealing: idle Ps take half",
+  "C10Syscalls": "Blocking system calls: hand the P to someone else",
+  "C10Netpoll": "The netpoller: thousands of connections, few threads",
+  "C10Sysmon": "sysmon: the runtime's watchdog",
+  "C10Schedtrace": "Watching the scheduler: GODEBUG=schedtrace",
+  "C10Recap": "Recap and check yourself"
  },
- "count": 67
+ "count": 92
 }

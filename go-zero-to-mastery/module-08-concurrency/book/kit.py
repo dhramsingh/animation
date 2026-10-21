@@ -590,7 +590,7 @@ class Listing(VGroup):
             longest = max(longest, max_cols)
         inner_w = gutter + (longest + 1) * self.cw + (0.42 if marks else 0.0)
         w = width if width else inner_w + 2 * pad
-        if title is not None:
+        if title is not None and not width:
             w = max(w, 0.105 * len(title) + 2.1)
         bar_h = 0.36 if title is not None else 0.0
         h = len(blocks) * self.pitch + 2 * pad * 0.8 + bar_h
@@ -1388,15 +1388,15 @@ class Opener(Page):
         num = txt(f"**{self.NUM}**", size=120, color=T.GO)
         name = txt(f"**{self.NAME}**", size=46, color=T.TEXT, width=6.6, lsh=0.9)
         tag = txt(self.TAGLINE, size=T.SIZE_BODY, color=T.TEXT2, width=6.4)
-        head = vstack(lab, num, name, tag, buff=0.18)
+        head = vstack(lab, num, name, tag, buff=0.16)
         self.at(head, X0, 3.1)
-        y = head.get_bottom()[1] - 0.35
+        y = head.get_bottom()[1] - 0.3
         if self.LEARN:
             sec = txt("**IN THIS CHAPTER YOU WILL**", size=14, color=T.MUTED)
             bl = bullets(self.LEARN, width=6.4, size=T.SIZE_SMALL, marker="check", marker_color=T.GREEN, gap=0.12)
             g = vstack(sec, bl, buff=0.16)
             self.at(g, X0, y)
-            y = g.get_bottom()[1] - 0.3
+            y = g.get_bottom()[1] - 0.25
         if self.QUESTION:
             q = callout("q", self.QUESTION, width=6.4, title="THE BIG QUESTION")
             self.at(q, X0, y)
