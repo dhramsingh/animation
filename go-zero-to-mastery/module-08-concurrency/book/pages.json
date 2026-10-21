@@ -98,7 +98,22 @@
   "C11Async": 96,
   "C11Demo": 97,
   "C11Tools": 98,
-  "C11Recap": 99
+  "C11Recap": 99,
+  "C12Opener": 100,
+  "C12Race": 101,
+  "C12Mutex": 102,
+  "C12MutexRules": 103,
+  "C12MutexHood": 104,
+  "C12RWMutex": 105,
+  "C12Once": 106,
+  "C12Cond": 107,
+  "C12Atomic": 108,
+  "C12CAS": 109,
+  "C12Bench": 110,
+  "C12Pool": 111,
+  "C12Map": 112,
+  "C12Choose": 113,
+  "C12Recap": 114
  },
  "order": [
   [
@@ -496,6 +511,66 @@
   [
    "ch11_preemption",
    "C11Recap"
+  ],
+  [
+   "ch12_sync",
+   "C12Opener"
+  ],
+  [
+   "ch12_sync",
+   "C12Race"
+  ],
+  [
+   "ch12_sync",
+   "C12Mutex"
+  ],
+  [
+   "ch12_sync",
+   "C12MutexRules"
+  ],
+  [
+   "ch12_sync",
+   "C12MutexHood"
+  ],
+  [
+   "ch12_sync",
+   "C12RWMutex"
+  ],
+  [
+   "ch12_sync",
+   "C12Once"
+  ],
+  [
+   "ch12_sync",
+   "C12Cond"
+  ],
+  [
+   "ch12_sync",
+   "C12Atomic"
+  ],
+  [
+   "ch12_sync",
+   "C12CAS"
+  ],
+  [
+   "ch12_sync",
+   "C12Bench"
+  ],
+  [
+   "ch12_sync",
+   "C12Pool"
+  ],
+  [
+   "ch12_sync",
+   "C12Map"
+  ],
+  [
+   "ch12_sync",
+   "C12Choose"
+  ],
+  [
+   "ch12_sync",
+   "C12Recap"
   ]
  ],
  "chapters": {},
@@ -598,7 +673,22 @@
   "C11Async": "Asynchronous preemption (Go 1.14+): a signal",
   "C11Demo": "See it for yourself: one P, one tight loop",
   "C11Tools": "Gosched, LockOSThread and latency",
-  "C11Recap": "Recap and check yourself"
+  "C11Recap": "Recap and check yourself",
+  "C12Opener": "C12Opener",
+  "C12Race": "counter++ is three steps, not one",
+  "C12Mutex": "sync.Mutex: one goroutine at a time",
+  "C12MutexRules": "Mutex rules that prevent real bugs",
+  "C12MutexHood": "Inside sync.Mutex: one word of state, a smart slow path",
+  "C12RWMutex": "sync.RWMutex: many readers or one writer",
+  "C12Once": "sync.Once and OnceValue: initialise exactly once",
+  "C12Cond": "sync.Cond: wait until a condition becomes true",
+  "C12Atomic": "sync/atomic: indivisible operations on one word",
+  "C12CAS": "Compare-and-swap loops and atomic.Pointer",
+  "C12Bench": "What does each tool cost? Measured",
+  "C12Pool": "sync.Pool: recycle temporary objects",
+  "C12Map": "sync.Map: a concurrent map for two special cases",
+  "C12Choose": "Choosing: channel, mutex, atomic or something else?",
+  "C12Recap": "Recap and check yourself"
  },
- "count": 99
+ "count": 114
 }

@@ -1,1 +1,1 @@
-mode=bench timeout=120s -cpu=4
+mode=bench timeout=180s -cpu=1,4

@@ -1,0 +1,2 @@
+$ go vet .
+main.go:14:9: Inc passes lock by value: gozm/module08/ch12_copylock.Counter contains sync.Mutex

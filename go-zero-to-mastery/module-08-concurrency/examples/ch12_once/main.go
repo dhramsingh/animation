@@ -15,11 +15,9 @@ var loadConfig = sync.OnceValue(func() *Config {
 
 func main() {
 	var wg sync.WaitGroup
-	for i := range 5 {
+	for range 5 {
 		wg.Go(func() {
-			cfg := loadConfig() // all 5 get the same *Config
-			_ = cfg
-			_ = i
+			_ = loadConfig() // all 5 get the same *Config
 		})
 	}
 	wg.Wait()
