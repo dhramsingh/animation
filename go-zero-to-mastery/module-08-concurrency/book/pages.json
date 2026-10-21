@@ -91,7 +91,14 @@
   "C10Netpoll": 89,
   "C10Sysmon": 90,
   "C10Schedtrace": 91,
-  "C10Recap": 92
+  "C10Recap": 92,
+  "C11Opener": 93,
+  "C11Yield": 94,
+  "C11Cooperative": 95,
+  "C11Async": 96,
+  "C11Demo": 97,
+  "C11Tools": 98,
+  "C11Recap": 99
  },
  "order": [
   [
@@ -461,6 +468,34 @@
   [
    "ch10_scheduler2",
    "C10Recap"
+  ],
+  [
+   "ch11_preemption",
+   "C11Opener"
+  ],
+  [
+   "ch11_preemption",
+   "C11Yield"
+  ],
+  [
+   "ch11_preemption",
+   "C11Cooperative"
+  ],
+  [
+   "ch11_preemption",
+   "C11Async"
+  ],
+  [
+   "ch11_preemption",
+   "C11Demo"
+  ],
+  [
+   "ch11_preemption",
+   "C11Tools"
+  ],
+  [
+   "ch11_preemption",
+   "C11Recap"
   ]
  ],
  "chapters": {},
@@ -556,7 +591,14 @@
   "C10Netpoll": "The netpoller: thousands of connections, few threads",
   "C10Sysmon": "sysmon: the runtime's watchdog",
   "C10Schedtrace": "Watching the scheduler: GODEBUG=schedtrace",
-  "C10Recap": "Recap and check yourself"
+  "C10Recap": "Recap and check yourself",
+  "C11Opener": "C11Opener",
+  "C11Yield": "When does a goroutine give up its P?",
+  "C11Cooperative": "Cooperative preemption: hijacking the stack check",
+  "C11Async": "Asynchronous preemption (Go 1.14+): a signal",
+  "C11Demo": "See it for yourself: one P, one tight loop",
+  "C11Tools": "Gosched, LockOSThread and latency",
+  "C11Recap": "Recap and check yourself"
  },
- "count": 92
+ "count": 99
 }
