@@ -1,0 +1,68 @@
+$ go test -v -race .
+=== RUN   TestHitsConcurrent
+==================
+WARNING: DATA RACE
+Read at 0x00c0000aa178 by goroutine 9:
+  gozm/module08/ch18_race_test.(*Hits).Inc()
+      ./counter.go:6 +0x3a
+  gozm/module08/ch18_race_test.TestHitsConcurrent.func1()
+      ./counter_test.go:14 +0x35
+
+Previous write at 0x00c0000aa178 by goroutine 10:
+  gozm/module08/ch18_race_test.(*Hits).Inc()
+      ./counter.go:6 +0x4c
+  gozm/module08/ch18_race_test.TestHitsConcurrent.func1()
+      ./counter_test.go:14 +0x35
+
+Goroutine 9 (running) created at:
+  sync.(*WaitGroup).Go()
+      $GOROOT/src/sync/waitgroup.go:238 +0x72
+  testing.tRunner()
+      $GOROOT/src/testing/testing.go:2195 +0x21c
+  testing.(*T).Run.gowrap1()
+      $GOROOT/src/testing/testing.go:2260 +0x38
+
+Goroutine 10 (finished) created at:
+  sync.(*WaitGroup).Go()
+      $GOROOT/src/sync/waitgroup.go:238 +0x72
+  testing.tRunner()
+      $GOROOT/src/testing/testing.go:2195 +0x21c
+  testing.(*T).Run.gowrap1()
+      $GOROOT/src/testing/testing.go:2260 +0x38
+==================
+==================
+WARNING: DATA RACE
+Write at 0x00c0000aa178 by goroutine 9:
+  gozm/module08/ch18_race_test.(*Hits).Inc()
+      ./counter.go:6 +0x4c
+  gozm/module08/ch18_race_test.TestHitsConcurrent.func1()
+      ./counter_test.go:14 +0x35
+
+Previous write at 0x00c0000aa178 by goroutine 14:
+  gozm/module08/ch18_race_test.(*Hits).Inc()
+      ./counter.go:6 +0x4c
+  gozm/module08/ch18_race_test.TestHitsConcurrent.func1()
+      ./counter_test.go:14 +0x35
+
+Goroutine 9 (running) created at:
+  sync.(*WaitGroup).Go()
+      $GOROOT/src/sync/waitgroup.go:238 +0x72
+  testing.tRunner()
+      $GOROOT/src/testing/testing.go:2195 +0x21c
+  testing.(*T).Run.gowrap1()
+      $GOROOT/src/testing/testing.go:2260 +0x38
+
+Goroutine 14 (finished) created at:
+  sync.(*WaitGroup).Go()
+      $GOROOT/src/sync/waitgroup.go:238 +0x72
+  testing.tRunner()
+      $GOROOT/src/testing/testing.go:2195 +0x21c
+  testing.(*T).Run.gowrap1()
+      $GOROOT/src/testing/testing.go:2260 +0x38
+==================
+    counter_test.go:19: hits: 800
+    testing.go:1867: race detected during execution of test
+--- FAIL: TestHitsConcurrent (0.00s)
+FAIL
+FAIL	gozm/module08/ch18_race_test	0.017s
+FAIL

@@ -1,0 +1,30 @@
+$ go test -v .
+=== RUN   TestLeakyHelper
+--- FAIL: TestLeakyHelper (0.00s)
+panic: deadlock: main bubble goroutine has exited but blocked goroutines remain [recovered, repanicked]
+
+goroutine 19 [running]:
+testing.tRunner.func1.2({0x6c9dd0, 0x5c018334138})
+	$GOROOT/src/testing/testing.go:2125 +0x232
+testing.tRunner.func1()
+	$GOROOT/src/testing/testing.go:2128 +0x329
+panic({0x6c9dd0?, 0x5c018334138?})
+	$GOROOT/src/runtime/panic.go:859 +0x125
+internal/synctest.Run(0x5c01833a140)
+	$GOROOT/src/runtime/synctest.go:247 +0x2dd
+testing/synctest.Test(0x5c018360248, 0x6dcd60)
+	$GOROOT/src/testing/synctest/synctest.go:291 +0x99
+gozm/module08/ch18_bubble_leak.TestLeakyHelper(0x5c018360248?)
+	./leak_test.go:9 +0x1a
+testing.tRunner(0x5c018360248, 0x6dccb8)
+	$GOROOT/src/testing/testing.go:2195 +0xea
+created by testing.(*T).Run in goroutine 1
+	$GOROOT/src/testing/testing.go:2260 +0x4d4
+
+goroutine 22 [chan send (durable), synctest bubble 1]:
+gozm/module08/ch18_bubble_leak.TestLeakyHelper.func1.1()
+	./leak_test.go:12 +0x1e
+created by gozm/module08/ch18_bubble_leak.TestLeakyHelper.func1 in goroutine 21
+	./leak_test.go:11 +0x67
+FAIL	gozm/module08/ch18_bubble_leak	0.004s
+FAIL

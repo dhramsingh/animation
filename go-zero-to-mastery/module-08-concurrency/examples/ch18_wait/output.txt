@@ -1,0 +1,6 @@
+$ go test -v .
+=== RUN   TestAfterFunc
+    afterfunc_test.go:25: called exactly when expected; no sleeps, no flakes
+--- PASS: TestAfterFunc (0.00s)
+PASS
+ok  	gozm/module08/ch18_wait	0.002s

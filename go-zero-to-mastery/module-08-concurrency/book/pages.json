@@ -165,7 +165,15 @@
   "C17Dump": 163,
   "C17Profiles": 164,
   "C17Guide": 165,
-  "C17Recap": 166
+  "C17Recap": 166,
+  "C18Opener": 167,
+  "C18Problem": 168,
+  "C18Synctest": 169,
+  "C18Wait": 170,
+  "C18BubbleLeak": 171,
+  "C18Race": 172,
+  "C18Design": 173,
+  "C18Recap": 174
  },
  "order": [
   [
@@ -831,6 +839,38 @@
   [
    "ch17_debugging",
    "C17Recap"
+  ],
+  [
+   "ch18_testing",
+   "C18Opener"
+  ],
+  [
+   "ch18_testing",
+   "C18Problem"
+  ],
+  [
+   "ch18_testing",
+   "C18Synctest"
+  ],
+  [
+   "ch18_testing",
+   "C18Wait"
+  ],
+  [
+   "ch18_testing",
+   "C18BubbleLeak"
+  ],
+  [
+   "ch18_testing",
+   "C18Race"
+  ],
+  [
+   "ch18_testing",
+   "C18Design"
+  ],
+  [
+   "ch18_testing",
+   "C18Recap"
   ]
  ],
  "chapters": {},
@@ -1000,7 +1040,15 @@
   "C17Dump": "Reading a goroutine dump",
   "C17Profiles": "Profiles and traces for concurrent programs",
   "C17Guide": "Field guide: symptom \u2192 cause \u2192 fix",
-  "C17Recap": "Recap and check yourself"
+  "C17Recap": "Recap and check yourself",
+  "C18Opener": "C18Opener",
+  "C18Problem": "Why concurrent tests flake",
+  "C18Synctest": "testing/synctest: a bubble with a fake clock",
+  "C18Wait": "synctest.Wait: assert when everything has settled",
+  "C18BubbleLeak": "The bubble catches leaks and deadlocks",
+  "C18Race": "Run tests with -race, many times, on many Ps",
+  "C18Design": "Designing concurrent code to be testable",
+  "C18Recap": "Recap and check yourself"
  },
- "count": 166
+ "count": 174
 }
