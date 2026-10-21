@@ -40,3 +40,7 @@ The exporter needs `ffmpeg` on the PATH. It seeks each frame exactly, so timing 
 ## Status
 
 The course spec `prompts/prompt-js-2d.md` in `dataEdge/animationproject` could not be read when these were built, so the format follows the brief in the request. Share that file and the animations can be adjusted to it.
+
+## Also in this repository
+
+- [`go-zero-to-mastery/`](go-zero-to-mastery/): graphic books for the course *Go language from Zero to Mastery* (Module 8: the concurrency model).

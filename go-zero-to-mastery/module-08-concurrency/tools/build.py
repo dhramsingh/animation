@@ -37,15 +37,40 @@ def chapter_files():
 
 
 def classes_in(path: Path):
+    """Top-level page classes with their constant attributes. Handles
+    `X = "..."`, `A, B = "...", "..."` and names bound at module level
+    (chapter files say `CH, NAME = "8.3", "..."` and `NUM, NAME = CH, NAME`)."""
     tree = ast.parse(path.read_text())
+    env = {}
+
+    def val(node):
+        if isinstance(node, ast.Constant):
+            return node.value
+        if isinstance(node, ast.Name):
+            return env.get(node.id)
+        return None
+
+    def assign(st, d):
+        if not (isinstance(st, ast.Assign) and len(st.targets) == 1):
+            return
+        t, v = st.targets[0], st.value
+        if isinstance(t, ast.Name):
+            x = val(v)
+            if x is not None:
+                d[t.id] = x
+        elif isinstance(t, ast.Tuple) and isinstance(v, ast.Tuple) and len(t.elts) == len(v.elts):
+            for a, b in zip(t.elts, v.elts):
+                x = val(b)
+                if isinstance(a, ast.Name) and x is not None:
+                    d[a.id] = x
+
     out = []
     for node in tree.body:
+        assign(node, env)
         if isinstance(node, ast.ClassDef) and not node.name.startswith("_"):
             attrs = {}
             for st in node.body:
-                if isinstance(st, ast.Assign) and len(st.targets) == 1 and \
-                        isinstance(st.targets[0], ast.Name) and isinstance(st.value, ast.Constant):
-                    attrs[st.targets[0].id] = st.value.value
+                assign(st, attrs)
             bases = [getattr(b, "id", getattr(b, "attr", "")) for b in node.bases]
             out.append((node.name, attrs, bases))
     return out
@@ -188,6 +213,8 @@ def html():
         items.append({"src": f"pages/{f.name}", "n": data["pages"].get(name), "title": data["titles"].get(name, name)})
     chapters = [{"num": k, "page": v["page"], "name": v["name"]} for k, v in
                 sorted(data["chapters"].items(), key=lambda kv: kv[1]["page"])]
+    if "RefOpener" in data["pages"]:
+        chapters.append({"num": "", "page": data["pages"]["RefOpener"], "name": "Reference"})
     tpl = (ROOT / "tools" / "viewer.html").read_text()
     out = tpl.replace("/*PAGES*/[]", json.dumps(items)).replace("/*CHAPTERS*/[]", json.dumps(chapters))
     (ROOT / "index.html").write_text(out)

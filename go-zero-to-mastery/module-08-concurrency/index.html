@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Go Concurrency: Module 8</title>
+<style>
+  :root {
+    --bg: #0B1220; --panel: #111B2E; --panel2: #16233B; --stroke: #26385C;
+    --text: #E7EEF8; --text2: #A9B8D0; --muted: #6F819F; --go: #00ADD8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { display: flex; flex-direction: column; }
+  header { display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+    border-bottom: 1px solid var(--stroke); background: var(--panel); flex-wrap: wrap; }
+  header h1 { font-size: 15px; margin: 0; font-weight: 700; letter-spacing: .02em; }
+  header h1 span { color: var(--go); }
+  .spacer { flex: 1; }
+  button, select, input { background: var(--panel2); color: var(--text); border: 1px solid var(--stroke);
+    border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 14px; }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--go); }
+  input[type=number] { width: 70px; }
+  main { flex: 1; display: flex; min-height: 0; }
+  nav { width: 260px; overflow-y: auto; border-right: 1px solid var(--stroke); padding: 8px; background: var(--panel); }
+  nav a { display: block; padding: 7px 10px; border-radius: 8px; color: var(--text2); text-decoration: none; font-size: 14px; }
+  nav a b { color: var(--go); margin-right: 6px; }
+  nav a:hover, nav a.on { background: var(--panel2); color: var(--text); }
+  #stage { flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; min-width: 0; }
+  #stage img { max-width: 100%; max-height: 100%; border-radius: 10px; box-shadow: 0 8px 30px rgba(0,0,0,.5); background: var(--panel); }
+  #grid { display: none; flex: 1; overflow-y: auto; padding: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; align-content: start; }
+  #grid figure { margin: 0; cursor: pointer; }
+  #grid img { width: 100%; border-radius: 6px; border: 1px solid var(--stroke); display: block; }
+  #grid figcaption { font-size: 12px; color: var(--muted); padding-top: 4px; }
+  body.grid #grid { display: grid; }
+  body.grid #stage { display: none; }
+  #title { color: var(--text2); font-size: 13px; }
+  @media (max-width: 760px) {
+    nav { display: none; }
+    header { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1><span>GO</span> ZERO TO MASTERY · MODULE 8 · THE CONCURRENCY MODEL</h1>
+  <div class="spacer"></div>
+  <button id="prev" title="Previous (←)">◀</button>
+  <input id="num" type="number" min="1" aria-label="Page number">
+  <span id="count"></span>
+  <button id="next" title="Next (→)">▶</button>
+  <select id="chap" aria-label="Chapter"></select>
+  <button id="mode" title="Toggle overview (g)">Overview</button>
+</header>
+<main>
+  <nav id="toc"></nav>
+  <div id="stage"><img id="page" alt=""></div>
+  <div id="grid"></div>
+</main>
+<div style="padding:6px 16px;border-top:1px solid var(--stroke);background:var(--panel)"><span id="title"></span></div>
+<script>
+const PAGES = [{"src": "pages/001-Cover.png", "n": 1, "title": "Cover"}, {"src": "pages/002-HowToRead.png", "n": 2, "title": "How to read this book"}, {"src": "pages/003-Roadmap.png", "n": 3, "title": "The module at a glance"}, {"src": "pages/004-Outcomes.png", "n": 4, "title": "What you will be able to do"}, {"src": "pages/005-C1Opener.png", "n": 5, "title": "Concurrency vs Parallelism"}, {"src": "pages/006-C1Definitions.png", "n": 6, "title": "Two different ideas"}, {"src": "pages/007-C1Quadrant.png", "n": 7, "title": "The 2 \u00d7 2 of concurrency and parallelism"}, {"src": "pages/008-C1IOBound.png", "n": 8, "title": "I/O-bound work: concurrency hides waiting"}, {"src": "pages/009-C1CPUBound.png", "n": 9, "title": "CPU-bound work: only parallelism helps"}, {"src": "pages/010-C1Amdahl.png", "n": 10, "title": "Amdahl's law: the serial part sets the ceiling"}, {"src": "pages/011-C1Models.png", "n": 11, "title": "Four ways to structure a concurrent program"}, {"src": "pages/012-C1CSP.png", "n": 12, "title": "Go's choice: Communicating Sequential Processes"}, {"src": "pages/013-C1Toolkit.png", "n": 13, "title": "The toolkit you will master in this module"}, {"src": "pages/014-C1Recap.png", "n": 14, "title": "Recap and check yourself"}, {"src": "pages/015-C2Opener.png", "n": 15, "title": "Threads and Goroutines"}, {"src": "pages/016-C2Process.png", "n": 16, "title": "Inside a process"}, {"src": "pages/017-C2ThreadCost.png", "n": 17, "title": "What an OS thread really costs"}, {"src": "pages/018-C2GoroutineCost.png", "n": 18, "title": "What a goroutine costs (measured)"}, {"src": "pages/019-C2Models.png", "n": 19, "title": "Three ways to map tasks onto OS threads"}, {"src": "pages/020-C2Anatomy.png", "n": 20, "title": "What a goroutine is made of"}, {"src": "pages/021-C2Switch.png", "n": 21, "title": "Why a goroutine switch is cheap"}, {"src": "pages/022-C2Scale.png", "n": 22, "title": "Putting it together: cost per unit of concurrency"}, {"src": "pages/023-C2Recap.png", "n": 23, "title": "Recap and check yourself"}, {"src": "pages/024-C3Opener.png", "n": 24, "title": "Goroutines in Depth"}, {"src": "pages/025-C3GoStatement.png", "n": 25, "title": "The go statement"}, {"src": "pages/026-C3MainExits.png", "n": 26, "title": "When main returns, every goroutine dies"}, {"src": "pages/027-C3LoopVar.png", "n": 27, "title": "Closures and the loop variable: Go 1.22 changed the rules"}, {"src": "pages/028-C3LoopVarFix.png", "n": 28, "title": "Loop variables: rules you can rely on"}, {"src": "pages/029-C3Lifecycle.png", "n": 29, "title": "The life of a goroutine: the runtime's state machine"}, {"src": "pages/030-C3Stacks.png", "n": 30, "title": "Growable stacks: start small, double, copy"}, {"src": "pages/031-C3NoIdentity.png", "n": 31, "title": "No name, no handle, no kill switch"}, {"src": "pages/032-C3Panics.png", "n": 32, "title": "A panic in any goroutine kills the whole program"}, {"src": "pages/033-C3Recap.png", "n": 33, "title": "Recap and check yourself"}, {"src": "pages/034-C4Opener.png", "n": 34, "title": "Waiting for Goroutines"}, {"src": "pages/035-C4WaitGroup.png", "n": 35, "title": "sync.WaitGroup: a counter you can wait on"}, {"src": "pages/036-C4WgGo.png", "n": 36, "title": "Go 1.25: wg.Go does the bookkeeping"}, {"src": "pages/037-C4Pitfalls.png", "n": 37, "title": "Four ways to misuse a WaitGroup, and what you see"}, {"src": "pages/038-C4Results.png", "n": 38, "title": "Collecting results: three safe shapes"}, {"src": "pages/039-C4Errgroup.png", "n": 39, "title": "errgroup: wait, fail fast, cancel the rest"}, {"src": "pages/040-C4Choose.png", "n": 40, "title": "Which waiting tool do I need?"}, {"src": "pages/041-C4Recap.png", "n": 41, "title": "Recap and check yourself"}, {"src": "pages/042-C5Opener.png", "n": 42, "title": "Channel Basics"}, {"src": "pages/043-C5Syntax.png", "n": 43, "title": "Making, sending and receiving"}, {"src": "pages/044-C5Rendezvous.png", "n": 44, "title": "An unbuffered channel is a rendezvous"}, {"src": "pages/045-C5PingPong.png", "n": 45, "title": "Ping-pong: two goroutines, one channel"}, {"src": "pages/046-C5Deadlock.png", "n": 46, "title": "fatal error: all goroutines are asleep - deadlock!"}, {"src": "pages/047-C5Directions.png", "n": 47, "title": "Channel directions: chan<- and <-chan"}, {"src": "pages/048-C5Values.png", "n": 48, "title": "Channels are values: a channel of replies"}, {"src": "pages/049-C5Signals.png", "n": 49, "title": "Signals: chan struct{} and the close broadcast"}, {"src": "pages/050-C5Recap.png", "n": 50, "title": "Recap and check yourself"}, {"src": "pages/051-C6Opener.png", "n": 51, "title": "Buffers, close and range"}, {"src": "pages/052-C6Buffered.png", "n": 52, "title": "Buffered channels: a queue with a capacity"}, {"src": "pages/053-C6Sizing.png", "n": 53, "title": "Unbuffered, size 1 or size N?"}, {"src": "pages/054-C6Close.png", "n": 54, "title": "close: no more values are coming"}, {"src": "pages/055-C6Axioms.png", "n": 55, "title": "The channel axioms, verified by experiment"}, {"src": "pages/056-C6Panics.png", "n": 56, "title": "Why closing can panic"}, {"src": "pages/057-C6WhoCloses.png", "n": 57, "title": "Who closes the channel?"}, {"src": "pages/058-C6Recap.png", "n": 58, "title": "Recap and check yourself"}, {"src": "pages/059-C7Opener.png", "n": 59, "title": "Inside a Channel"}, {"src": "pages/060-C7Hchan.png", "n": 60, "title": "runtime.hchan, field by field"}, {"src": "pages/061-C7Ring.png", "n": 61, "title": "The ring buffer, observed live"}, {"src": "pages/062-C7Send.png", "n": 62, "title": "chansend: four cases, in order"}, {"src": "pages/063-C7Recv.png", "n": 63, "title": "chanrecv: the mirror image, with one twist"}, {"src": "pages/064-C7Sudog.png", "n": 64, "title": "Parking: sudog, gopark and goready"}, {"src": "pages/065-C7Story.png", "n": 65, "title": "Storyboard: a fast producer meets a slow consumer"}, {"src": "pages/066-C7Close.png", "n": 66, "title": "closechan: wake everybody, then step back"}, {"src": "pages/067-C7Recap.png", "n": 67, "title": "Recap and check yourself"}, {"src": "pages/068-C8Opener.png", "n": 68, "title": "select and Timers"}, {"src": "pages/069-C8Rules.png", "n": 69, "title": "select: proceed with the first ready operation"}, {"src": "pages/070-C8Timeout.png", "n": 70, "title": "Timeouts: race the work against a timer"}, {"src": "pages/071-C8NonBlocking.png", "n": 71, "title": "Non-blocking operations: select with default"}, {"src": "pages/072-C8NilTrick.png", "n": 72, "title": "Switching cases off with nil channels"}, {"src": "pages/073-C8Fairness.png", "n": 73, "title": "Is select fair? We measured it"}, {"src": "pages/074-C8Selectgo.png", "n": 74, "title": "Under the hood: selectgo in three passes"}, {"src": "pages/075-C8Timers.png", "n": 75, "title": "Timers and tickers"}, {"src": "pages/076-C8ForSelect.png", "n": 76, "title": "The for-select loop: a goroutine's main loop"}, {"src": "pages/077-C8Recap.png", "n": 77, "title": "Recap and check yourself"}, {"src": "pages/078-C9Opener.png", "n": 78, "title": "The Scheduler I: G, M and P"}, {"src": "pages/079-C9Why.png", "n": 79, "title": "Why Go schedules goroutines itself"}, {"src": "pages/080-C9GMP.png", "n": 80, "title": "Meet G, M and P"}, {"src": "pages/081-C9BigPicture.png", "n": 81, "title": "The big picture"}, {"src": "pages/082-C9Gomaxprocs.png", "n": 82, "title": "GOMAXPROCS: how many Ps"}, {"src": "pages/083-C9Schedule.png", "n": 83, "title": "One turn of the scheduler: schedule() and findRunnable()"}, {"src": "pages/084-C9Recap.png", "n": 84, "title": "Recap and check yourself"}, {"src": "pages/085-C10Opener.png", "n": 85, "title": "The Scheduler II: Queues, Syscalls and I/O"}, {"src": "pages/086-C10Runq.png", "n": 86, "title": "Where a new goroutine goes"}, {"src": "pages/087-C10Steal.png", "n": 87, "title": "Work stealing: idle Ps take half"}, {"src": "pages/088-C10Syscalls.png", "n": 88, "title": "Blocking system calls: hand the P to someone else"}, {"src": "pages/089-C10Netpoll.png", "n": 89, "title": "The netpoller: thousands of connections, few threads"}, {"src": "pages/090-C10Sysmon.png", "n": 90, "title": "sysmon: the runtime's watchdog"}, {"src": "pages/091-C10Schedtrace.png", "n": 91, "title": "Watching the scheduler: GODEBUG=schedtrace"}, {"src": "pages/092-C10Recap.png", "n": 92, "title": "Recap and check yourself"}, {"src": "pages/093-C11Opener.png", "n": 93, "title": "Preemption"}, {"src": "pages/094-C11Yield.png", "n": 94, "title": "When does a goroutine give up its P?"}, {"src": "pages/095-C11Cooperative.png", "n": 95, "title": "Cooperative preemption: hijacking the stack check"}, {"src": "pages/096-C11Async.png", "n": 96, "title": "Asynchronous preemption (Go 1.14+): a signal"}, {"src": "pages/097-C11Demo.png", "n": 97, "title": "See it for yourself: one P, one tight loop"}, {"src": "pages/098-C11Tools.png", "n": 98, "title": "Gosched, LockOSThread and latency"}, {"src": "pages/099-C11Recap.png", "n": 99, "title": "Recap and check yourself"}, {"src": "pages/100-C12Opener.png", "n": 100, "title": "Sharing Memory: sync and atomics"}, {"src": "pages/101-C12Race.png", "n": 101, "title": "counter++ is three steps, not one"}, {"src": "pages/102-C12Mutex.png", "n": 102, "title": "sync.Mutex: one goroutine at a time"}, {"src": "pages/103-C12MutexRules.png", "n": 103, "title": "Mutex rules that prevent real bugs"}, {"src": "pages/104-C12MutexHood.png", "n": 104, "title": "Inside sync.Mutex: one word of state, a smart slow path"}, {"src": "pages/105-C12RWMutex.png", "n": 105, "title": "sync.RWMutex: many readers or one writer"}, {"src": "pages/106-C12Once.png", "n": 106, "title": "sync.Once and OnceValue: initialise exactly once"}, {"src": "pages/107-C12Cond.png", "n": 107, "title": "sync.Cond: wait until a condition becomes true"}, {"src": "pages/108-C12Atomic.png", "n": 108, "title": "sync/atomic: indivisible operations on one word"}, {"src": "pages/109-C12CAS.png", "n": 109, "title": "Compare-and-swap loops and atomic.Pointer"}, {"src": "pages/110-C12Bench.png", "n": 110, "title": "What does each tool cost? Measured"}, {"src": "pages/111-C12Pool.png", "n": 111, "title": "sync.Pool: recycle temporary objects"}, {"src": "pages/112-C12Map.png", "n": 112, "title": "sync.Map: a concurrent map for two special cases"}, {"src": "pages/113-C12Choose.png", "n": 113, "title": "Choosing: channel, mutex, atomic or something else?"}, {"src": "pages/114-C12Recap.png", "n": 114, "title": "Recap and check yourself"}, {"src": "pages/115-C13Opener.png", "n": 115, "title": "The Memory Model and the Race Detector"}, {"src": "pages/116-C13Reorder.png", "n": 116, "title": "Memory is not one shared whiteboard"}, {"src": "pages/117-C13Litmus.png", "n": 117, "title": "Measured: an outcome no interleaving can explain"}, {"src": "pages/118-C13HB.png", "n": 118, "title": "Happens before: the only order you can rely on"}, {"src": "pages/119-C13SyncChan.png", "n": 119, "title": "Synchronizing edges (1): goroutines and channels"}, {"src": "pages/120-C13SyncMore.png", "n": 120, "title": "Synchronizing edges (2): locks, Once, atomics and friends"}, {"src": "pages/121-C13Race.png", "n": 121, "title": "What a data race is, and what Go still promises"}, {"src": "pages/122-C13Torn.png", "n": 122, "title": "Measured: torn reads of a slice header"}, {"src": "pages/123-C13BusyWait.png", "n": 123, "title": "Broken idiom 1: spinning on a plain flag"}, {"src": "pages/124-C13DCL.png", "n": 124, "title": "Broken idiom 2: double-checked locking"}, {"src": "pages/125-C13Detector.png", "n": 125, "title": "The race detector: -race"}, {"src": "pages/126-C13Report.png", "n": 126, "title": "Reading a race report"}, {"src": "pages/127-C13Habits.png", "n": 127, "title": "Race-free by habit: common races and their fixes"}, {"src": "pages/128-C13Recap.png", "n": 128, "title": "Recap and check yourself"}, {"src": "pages/129-C14Opener.png", "n": 129, "title": "Cancellation with context"}, {"src": "pages/130-C14Why.png", "n": 130, "title": "The problem: work that outlives its purpose"}, {"src": "pages/131-C14Timeout.png", "n": 131, "title": "WithTimeout: a time budget for everything below"}, {"src": "pages/132-C14Tree.png", "n": 132, "title": "The context tree: cancellation flows down"}, {"src": "pages/133-C14Inside.png", "n": 133, "title": "Inside package context: three small structs"}, {"src": "pages/134-C14Listen.png", "n": 134, "title": "Making code cancellable: three shapes"}, {"src": "pages/135-C14Cause.png", "n": 135, "title": "Saying why: WithCancelCause and Cause"}, {"src": "pages/136-C14AfterFunc.png", "n": 136, "title": "AfterFunc and WithoutCancel (Go 1.21)"}, {"src": "pages/137-C14Values.png", "n": 137, "title": "Context values: request-scoped data only"}, {"src": "pages/138-C14Rules.png", "n": 138, "title": "Rules of the road, and where context already lives"}, {"src": "pages/139-C14Recap.png", "n": 139, "title": "Recap and check yourself"}, {"src": "pages/140-C15Opener.png", "n": 140, "title": "Concurrency Patterns I: Pipelines and Pools"}, {"src": "pages/141-C15Generator.png", "n": 141, "title": "Generator: a goroutine that produces a stream"}, {"src": "pages/142-C15Iter.png", "n": 142, "title": "Generator or iterator? Measure first"}, {"src": "pages/143-C15Pipeline.png", "n": 143, "title": "Pipeline: stages connected by channels"}, {"src": "pages/144-C15FanInOut.png", "n": 144, "title": "Fan-out and fan-in"}, {"src": "pages/145-C15WorkerPool.png", "n": 145, "title": "Worker pool: a fixed team pulls from a queue"}, {"src": "pages/146-C15Semaphore.png", "n": 146, "title": "Semaphore: at most N at a time"}, {"src": "pages/147-C15Ordered.png", "n": 147, "title": "Results in order, computed in any order"}, {"src": "pages/148-C15Choose.png", "n": 148, "title": "Patterns at a glance"}, {"src": "pages/149-C15Recap.png", "n": 149, "title": "Recap and check yourself"}, {"src": "pages/150-C16Opener.png", "n": 150, "title": "Concurrency Patterns II: Production"}, {"src": "pages/151-C16RateLimit.png", "n": 151, "title": "Rate limiting with a token bucket"}, {"src": "pages/152-C16PubSub.png", "n": 152, "title": "Publish/subscribe: one sender, many receivers"}, {"src": "pages/153-C16Shutdown.png", "n": 153, "title": "Graceful shutdown: stop taking work, finish what's in hand"}, {"src": "pages/154-C16Retry.png", "n": 154, "title": "Retries: exponential backoff with jitter"}, {"src": "pages/155-C16Singleflight.png", "n": 155, "title": "singleflight: one call for many identical requests"}, {"src": "pages/156-C16Errgroup.png", "n": 156, "title": "errgroup with a limit: bounded, cancellable fan-out"}, {"src": "pages/157-C16Recap.png", "n": 157, "title": "Recap and check yourself"}, {"src": "pages/158-C17Opener.png", "n": 158, "title": "Leaks, Deadlocks and Debugging"}, {"src": "pages/159-C17Leak.png", "n": 159, "title": "A goroutine leak in 20 lines"}, {"src": "pages/160-C17Causes.png", "n": 160, "title": "Five ways goroutines leak"}, {"src": "pages/161-C17LeakProfile.png", "n": 161, "title": "Finding leaks: the goroutineleak profile"}, {"src": "pages/162-C17Deadlock.png", "n": 162, "title": "Deadlocks: a cycle of waiting"}, {"src": "pages/163-C17Dump.png", "n": 163, "title": "Reading a goroutine dump"}, {"src": "pages/164-C17Profiles.png", "n": 164, "title": "Profiles and traces for concurrent programs"}, {"src": "pages/165-C17Guide.png", "n": 165, "title": "Field guide: symptom \u2192 cause \u2192 fix"}, {"src": "pages/166-C17Recap.png", "n": 166, "title": "Recap and check yourself"}, {"src": "pages/167-C18Opener.png", "n": 167, "title": "Testing Concurrent Code"}, {"src": "pages/168-C18Problem.png", "n": 168, "title": "Why concurrent tests flake"}, {"src": "pages/169-C18Synctest.png", "n": 169, "title": "testing/synctest: a bubble with a fake clock"}, {"src": "pages/170-C18Wait.png", "n": 170, "title": "synctest.Wait: assert when everything has settled"}, {"src": "pages/171-C18BubbleLeak.png", "n": 171, "title": "The bubble catches leaks and deadlocks"}, {"src": "pages/172-C18Race.png", "n": 172, "title": "Run tests with -race, many times, on many Ps"}, {"src": "pages/173-C18Design.png", "n": 173, "title": "Designing concurrent code to be testable"}, {"src": "pages/174-C18Recap.png", "n": 174, "title": "Recap and check yourself"}, {"src": "pages/175-C19Opener.png", "n": 175, "title": "Capstone: a Concurrent Web Crawler"}, {"src": "pages/176-C19Design.png", "n": 176, "title": "The design: one owner, many workers"}, {"src": "pages/177-C19Fetch.png", "n": 177, "title": "The fake web and the fetcher"}, {"src": "pages/178-C19Workers.png", "n": 178, "title": "The worker pool: rate-limited, cancellable"}, {"src": "pages/179-C19Coordinator.png", "n": 179, "title": "The coordinator: a select that switches cases on and off"}, {"src": "pages/180-C19Run.png", "n": 180, "title": "Running it: with a budget, and with a tight deadline"}, {"src": "pages/181-C19Test.png", "n": 181, "title": "Proving it: a race-free, leak-free test in fake time"}, {"src": "pages/182-C19Review.png", "n": 182, "title": "A review checklist for any concurrent Go code"}, {"src": "pages/183-C19Exercises.png", "n": 183, "title": "Extend the crawler: exercises"}, {"src": "pages/184-C19Recap.png", "n": 184, "title": "Recap: the whole module in one program"}, {"src": "pages/185-RefOpener.png", "n": 185, "title": "RefOpener"}, {"src": "pages/186-CheatChannels.png", "n": 186, "title": "Cheat sheet: goroutines, channels and select"}, {"src": "pages/187-CheatSync.png", "n": 187, "title": "Cheat sheet: sync, atomic and context"}, {"src": "pages/188-CheatRuntime.png", "n": 188, "title": "Cheat sheet: the runtime at a glance"}, {"src": "pages/189-Glossary.png", "n": 189, "title": "Glossary (A to H)"}, {"src": "pages/190-Glossary2.png", "n": 190, "title": "Glossary (M to W)"}, {"src": "pages/191-Exercises.png", "n": 191, "title": "Exercises by chapter"}, {"src": "pages/192-References.png", "n": 192, "title": "References and further reading"}, {"src": "pages/193-Colophon.png", "n": 193, "title": "How this book was made"}];
+const CHAPTERS = [{"num": "8.1", "page": 5, "name": "Concurrency vs Parallelism"}, {"num": "8.2", "page": 15, "name": "Threads and Goroutines"}, {"num": "8.3", "page": 24, "name": "Goroutines in Depth"}, {"num": "8.4", "page": 34, "name": "Waiting for Goroutines"}, {"num": "8.5", "page": 42, "name": "Channel Basics"}, {"num": "8.6", "page": 51, "name": "Buffers, close and range"}, {"num": "8.7", "page": 59, "name": "Inside a Channel"}, {"num": "8.8", "page": 68, "name": "select and Timers"}, {"num": "8.9", "page": 78, "name": "The Scheduler I: G, M and P"}, {"num": "8.10", "page": 85, "name": "The Scheduler II: Queues, Syscalls and I/O"}, {"num": "8.11", "page": 93, "name": "Preemption"}, {"num": "8.12", "page": 100, "name": "Sharing Memory: sync and atomics"}, {"num": "8.13", "page": 115, "name": "The Memory Model and the Race Detector"}, {"num": "8.14", "page": 129, "name": "Cancellation with context"}, {"num": "8.15", "page": 140, "name": "Concurrency Patterns I: Pipelines and Pools"}, {"num": "8.16", "page": 150, "name": "Concurrency Patterns II: Production"}, {"num": "8.17", "page": 158, "name": "Leaks, Deadlocks and Debugging"}, {"num": "8.18", "page": 167, "name": "Testing Concurrent Code"}, {"num": "8.19", "page": 175, "name": "Capstone: a Concurrent Web Crawler"}, {"num": "", "page": 185, "name": "Reference"}];
+let i = 0;
+const $ = id => document.getElementById(id);
+
+function chapterOf(n) {
+  let c = null;
+  for (const ch of CHAPTERS) if (ch.page <= n) c = ch;
+  return c;
+}
+function show(k) {
+  i = Math.max(0, Math.min(PAGES.length - 1, k));
+  const p = PAGES[i];
+  $("page").src = p.src;
+  $("page").alt = p.title;
+  $("num").value = i + 1;
+  $("title").textContent = `p. ${i + 1} · ${p.title}`;
+  const c = chapterOf(i + 1);
+  document.querySelectorAll("nav a").forEach(a => a.classList.toggle("on", c && a.dataset.page == c.page));
+  if (c) $("chap").value = c.page;
+  try { history.replaceState(null, "", "#" + (i + 1)); } catch (e) {}
+  if (i + 1 < PAGES.length) { const pre = new Image(); pre.src = PAGES[i + 1].src; }
+}
+function init() {
+  $("count").textContent = "/ " + PAGES.length;
+  $("num").max = PAGES.length;
+  const front = {num: "", page: 1, name: "Cover and front matter"};
+  for (const c of [front, ...CHAPTERS]) {
+    const a = document.createElement("a");
+    a.href = "#" + c.page;
+    a.dataset.page = c.page;
+    a.innerHTML = (c.num ? `<b>${c.num}</b>` : "") + c.name;
+    a.onclick = e => { e.preventDefault(); document.body.classList.remove("grid"); show(c.page - 1); };
+    $("toc").appendChild(a);
+    const o = document.createElement("option");
+    o.value = c.page; o.textContent = (c.num ? c.num + "  " : "") + c.name;
+    $("chap").appendChild(o);
+  }
+  PAGES.forEach((p, k) => {
+    const f = document.createElement("figure");
+    f.innerHTML = `<img loading="lazy" src="${p.src}" alt=""><figcaption>${k + 1} · ${p.title}</figcaption>`;
+    f.onclick = () => { document.body.classList.remove("grid"); show(k); };
+    $("grid").appendChild(f);
+  });
+  $("prev").onclick = () => show(i - 1);
+  $("next").onclick = () => show(i + 1);
+  $("num").onchange = () => show(parseInt($("num").value, 10) - 1);
+  $("chap").onchange = () => show(parseInt($("chap").value, 10) - 1);
+  $("mode").onclick = () => document.body.classList.toggle("grid");
+  $("page").onclick = e => { const r = e.target.getBoundingClientRect(); show(e.clientX - r.left < r.width / 3 ? i - 1 : i + 1); };
+  document.addEventListener("keydown", e => {
+    if (e.target.tagName === "INPUT") return;
+    if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); show(i + 1); }
+    if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); show(i - 1); }
+    if (e.key === "Home") show(0);
+    if (e.key === "End") show(PAGES.length - 1);
+    if (e.key === "g") document.body.classList.toggle("grid");
+  });
+  const h = parseInt(location.hash.slice(1), 10);
+  show(isNaN(h) ? 0 : h - 1);
+}
+init();
+</script>
+</body>
+</html>

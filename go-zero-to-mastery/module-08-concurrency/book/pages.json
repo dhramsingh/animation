@@ -183,7 +183,16 @@
   "C19Test": 181,
   "C19Review": 182,
   "C19Exercises": 183,
-  "C19Recap": 184
+  "C19Recap": 184,
+  "RefOpener": 185,
+  "CheatChannels": 186,
+  "CheatSync": 187,
+  "CheatRuntime": 188,
+  "Glossary": 189,
+  "Glossary2": 190,
+  "Exercises": 191,
+  "References": 192,
+  "Colophon": 193
  },
  "order": [
   [
@@ -921,15 +930,128 @@
   [
    "ch19_capstone",
    "C19Recap"
+  ],
+  [
+   "ch20_back",
+   "RefOpener"
+  ],
+  [
+   "ch20_back",
+   "CheatChannels"
+  ],
+  [
+   "ch20_back",
+   "CheatSync"
+  ],
+  [
+   "ch20_back",
+   "CheatRuntime"
+  ],
+  [
+   "ch20_back",
+   "Glossary"
+  ],
+  [
+   "ch20_back",
+   "Glossary2"
+  ],
+  [
+   "ch20_back",
+   "Exercises"
+  ],
+  [
+   "ch20_back",
+   "References"
+  ],
+  [
+   "ch20_back",
+   "Colophon"
   ]
  ],
- "chapters": {},
+ "chapters": {
+  "8.1": {
+   "page": 5,
+   "name": "Concurrency vs Parallelism"
+  },
+  "8.2": {
+   "page": 15,
+   "name": "Threads and Goroutines"
+  },
+  "8.3": {
+   "page": 24,
+   "name": "Goroutines in Depth"
+  },
+  "8.4": {
+   "page": 34,
+   "name": "Waiting for Goroutines"
+  },
+  "8.5": {
+   "page": 42,
+   "name": "Channel Basics"
+  },
+  "8.6": {
+   "page": 51,
+   "name": "Buffers, close and range"
+  },
+  "8.7": {
+   "page": 59,
+   "name": "Inside a Channel"
+  },
+  "8.8": {
+   "page": 68,
+   "name": "select and Timers"
+  },
+  "8.9": {
+   "page": 78,
+   "name": "The Scheduler I: G, M and P"
+  },
+  "8.10": {
+   "page": 85,
+   "name": "The Scheduler II: Queues, Syscalls and I/O"
+  },
+  "8.11": {
+   "page": 93,
+   "name": "Preemption"
+  },
+  "8.12": {
+   "page": 100,
+   "name": "Sharing Memory: sync and atomics"
+  },
+  "8.13": {
+   "page": 115,
+   "name": "The Memory Model and the Race Detector"
+  },
+  "8.14": {
+   "page": 129,
+   "name": "Cancellation with context"
+  },
+  "8.15": {
+   "page": 140,
+   "name": "Concurrency Patterns I: Pipelines and Pools"
+  },
+  "8.16": {
+   "page": 150,
+   "name": "Concurrency Patterns II: Production"
+  },
+  "8.17": {
+   "page": 158,
+   "name": "Leaks, Deadlocks and Debugging"
+  },
+  "8.18": {
+   "page": 167,
+   "name": "Testing Concurrent Code"
+  },
+  "8.19": {
+   "page": 175,
+   "name": "Capstone: a Concurrent Web Crawler"
+  }
+ },
  "titles": {
   "Cover": "Cover",
   "HowToRead": "How to read this book",
   "Roadmap": "The module at a glance",
   "Outcomes": "What you will be able to do",
-  "C1Opener": "C1Opener",
+  "C1Opener": "Concurrency vs Parallelism",
   "C1Definitions": "Two different ideas",
   "C1Quadrant": "The 2 \u00d7 2 of concurrency and parallelism",
   "C1IOBound": "I/O-bound work: concurrency hides waiting",
@@ -939,7 +1061,7 @@
   "C1CSP": "Go's choice: Communicating Sequential Processes",
   "C1Toolkit": "The toolkit you will master in this module",
   "C1Recap": "Recap and check yourself",
-  "C2Opener": "C2Opener",
+  "C2Opener": "Threads and Goroutines",
   "C2Process": "Inside a process",
   "C2ThreadCost": "What an OS thread really costs",
   "C2GoroutineCost": "What a goroutine costs (measured)",
@@ -948,7 +1070,7 @@
   "C2Switch": "Why a goroutine switch is cheap",
   "C2Scale": "Putting it together: cost per unit of concurrency",
   "C2Recap": "Recap and check yourself",
-  "C3Opener": "C3Opener",
+  "C3Opener": "Goroutines in Depth",
   "C3GoStatement": "The go statement",
   "C3MainExits": "When main returns, every goroutine dies",
   "C3LoopVar": "Closures and the loop variable: Go 1.22 changed the rules",
@@ -958,7 +1080,7 @@
   "C3NoIdentity": "No name, no handle, no kill switch",
   "C3Panics": "A panic in any goroutine kills the whole program",
   "C3Recap": "Recap and check yourself",
-  "C4Opener": "C4Opener",
+  "C4Opener": "Waiting for Goroutines",
   "C4WaitGroup": "sync.WaitGroup: a counter you can wait on",
   "C4WgGo": "Go 1.25: wg.Go does the bookkeeping",
   "C4Pitfalls": "Four ways to misuse a WaitGroup, and what you see",
@@ -966,7 +1088,7 @@
   "C4Errgroup": "errgroup: wait, fail fast, cancel the rest",
   "C4Choose": "Which waiting tool do I need?",
   "C4Recap": "Recap and check yourself",
-  "C5Opener": "C5Opener",
+  "C5Opener": "Channel Basics",
   "C5Syntax": "Making, sending and receiving",
   "C5Rendezvous": "An unbuffered channel is a rendezvous",
   "C5PingPong": "Ping-pong: two goroutines, one channel",
@@ -975,7 +1097,7 @@
   "C5Values": "Channels are values: a channel of replies",
   "C5Signals": "Signals: chan struct{} and the close broadcast",
   "C5Recap": "Recap and check yourself",
-  "C6Opener": "C6Opener",
+  "C6Opener": "Buffers, close and range",
   "C6Buffered": "Buffered channels: a queue with a capacity",
   "C6Sizing": "Unbuffered, size 1 or size N?",
   "C6Close": "close: no more values are coming",
@@ -983,7 +1105,7 @@
   "C6Panics": "Why closing can panic",
   "C6WhoCloses": "Who closes the channel?",
   "C6Recap": "Recap and check yourself",
-  "C7Opener": "C7Opener",
+  "C7Opener": "Inside a Channel",
   "C7Hchan": "runtime.hchan, field by field",
   "C7Ring": "The ring buffer, observed live",
   "C7Send": "chansend: four cases, in order",
@@ -992,7 +1114,7 @@
   "C7Story": "Storyboard: a fast producer meets a slow consumer",
   "C7Close": "closechan: wake everybody, then step back",
   "C7Recap": "Recap and check yourself",
-  "C8Opener": "C8Opener",
+  "C8Opener": "select and Timers",
   "C8Rules": "select: proceed with the first ready operation",
   "C8Timeout": "Timeouts: race the work against a timer",
   "C8NonBlocking": "Non-blocking operations: select with default",
@@ -1002,14 +1124,14 @@
   "C8Timers": "Timers and tickers",
   "C8ForSelect": "The for-select loop: a goroutine's main loop",
   "C8Recap": "Recap and check yourself",
-  "C9Opener": "C9Opener",
+  "C9Opener": "The Scheduler I: G, M and P",
   "C9Why": "Why Go schedules goroutines itself",
   "C9GMP": "Meet G, M and P",
   "C9BigPicture": "The big picture",
   "C9Gomaxprocs": "GOMAXPROCS: how many Ps",
   "C9Schedule": "One turn of the scheduler: schedule() and findRunnable()",
   "C9Recap": "Recap and check yourself",
-  "C10Opener": "C10Opener",
+  "C10Opener": "The Scheduler II: Queues, Syscalls and I/O",
   "C10Runq": "Where a new goroutine goes",
   "C10Steal": "Work stealing: idle Ps take half",
   "C10Syscalls": "Blocking system calls: hand the P to someone else",
@@ -1017,14 +1139,14 @@
   "C10Sysmon": "sysmon: the runtime's watchdog",
   "C10Schedtrace": "Watching the scheduler: GODEBUG=schedtrace",
   "C10Recap": "Recap and check yourself",
-  "C11Opener": "C11Opener",
+  "C11Opener": "Preemption",
   "C11Yield": "When does a goroutine give up its P?",
   "C11Cooperative": "Cooperative preemption: hijacking the stack check",
   "C11Async": "Asynchronous preemption (Go 1.14+): a signal",
   "C11Demo": "See it for yourself: one P, one tight loop",
   "C11Tools": "Gosched, LockOSThread and latency",
   "C11Recap": "Recap and check yourself",
-  "C12Opener": "C12Opener",
+  "C12Opener": "Sharing Memory: sync and atomics",
   "C12Race": "counter++ is three steps, not one",
   "C12Mutex": "sync.Mutex: one goroutine at a time",
   "C12MutexRules": "Mutex rules that prevent real bugs",
@@ -1039,7 +1161,7 @@
   "C12Map": "sync.Map: a concurrent map for two special cases",
   "C12Choose": "Choosing: channel, mutex, atomic or something else?",
   "C12Recap": "Recap and check yourself",
-  "C13Opener": "C13Opener",
+  "C13Opener": "The Memory Model and the Race Detector",
   "C13Reorder": "Memory is not one shared whiteboard",
   "C13Litmus": "Measured: an outcome no interleaving can explain",
   "C13HB": "Happens before: the only order you can rely on",
@@ -1053,7 +1175,7 @@
   "C13Report": "Reading a race report",
   "C13Habits": "Race-free by habit: common races and their fixes",
   "C13Recap": "Recap and check yourself",
-  "C14Opener": "C14Opener",
+  "C14Opener": "Cancellation with context",
   "C14Why": "The problem: work that outlives its purpose",
   "C14Timeout": "WithTimeout: a time budget for everything below",
   "C14Tree": "The context tree: cancellation flows down",
@@ -1064,7 +1186,7 @@
   "C14Values": "Context values: request-scoped data only",
   "C14Rules": "Rules of the road, and where context already lives",
   "C14Recap": "Recap and check yourself",
-  "C15Opener": "C15Opener",
+  "C15Opener": "Concurrency Patterns I: Pipelines and Pools",
   "C15Generator": "Generator: a goroutine that produces a stream",
   "C15Iter": "Generator or iterator? Measure first",
   "C15Pipeline": "Pipeline: stages connected by channels",
@@ -1074,7 +1196,7 @@
   "C15Ordered": "Results in order, computed in any order",
   "C15Choose": "Patterns at a glance",
   "C15Recap": "Recap and check yourself",
-  "C16Opener": "C16Opener",
+  "C16Opener": "Concurrency Patterns II: Production",
   "C16RateLimit": "Rate limiting with a token bucket",
   "C16PubSub": "Publish/subscribe: one sender, many receivers",
   "C16Shutdown": "Graceful shutdown: stop taking work, finish what's in hand",
@@ -1082,7 +1204,7 @@
   "C16Singleflight": "singleflight: one call for many identical requests",
   "C16Errgroup": "errgroup with a limit: bounded, cancellable fan-out",
   "C16Recap": "Recap and check yourself",
-  "C17Opener": "C17Opener",
+  "C17Opener": "Leaks, Deadlocks and Debugging",
   "C17Leak": "A goroutine leak in 20 lines",
   "C17Causes": "Five ways goroutines leak",
   "C17LeakProfile": "Finding leaks: the goroutineleak profile",
@@ -1091,7 +1213,7 @@
   "C17Profiles": "Profiles and traces for concurrent programs",
   "C17Guide": "Field guide: symptom \u2192 cause \u2192 fix",
   "C17Recap": "Recap and check yourself",
-  "C18Opener": "C18Opener",
+  "C18Opener": "Testing Concurrent Code",
   "C18Problem": "Why concurrent tests flake",
   "C18Synctest": "testing/synctest: a bubble with a fake clock",
   "C18Wait": "synctest.Wait: assert when everything has settled",
@@ -1099,7 +1221,7 @@
   "C18Race": "Run tests with -race, many times, on many Ps",
   "C18Design": "Designing concurrent code to be testable",
   "C18Recap": "Recap and check yourself",
-  "C19Opener": "C19Opener",
+  "C19Opener": "Capstone: a Concurrent Web Crawler",
   "C19Design": "The design: one owner, many workers",
   "C19Fetch": "The fake web and the fetcher",
   "C19Workers": "The worker pool: rate-limited, cancellable",
@@ -1108,7 +1230,16 @@
   "C19Test": "Proving it: a race-free, leak-free test in fake time",
   "C19Review": "A review checklist for any concurrent Go code",
   "C19Exercises": "Extend the crawler: exercises",
-  "C19Recap": "Recap: the whole module in one program"
+  "C19Recap": "Recap: the whole module in one program",
+  "RefOpener": "RefOpener",
+  "CheatChannels": "Cheat sheet: goroutines, channels and select",
+  "CheatSync": "Cheat sheet: sync, atomic and context",
+  "CheatRuntime": "Cheat sheet: the runtime at a glance",
+  "Glossary": "Glossary (A to H)",
+  "Glossary2": "Glossary (M to W)",
+  "Exercises": "Exercises by chapter",
+  "References": "References and further reading",
+  "Colophon": "How this book was made"
  },
- "count": 184
+ "count": 193
 }
