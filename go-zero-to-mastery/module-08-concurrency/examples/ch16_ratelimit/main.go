@@ -26,6 +26,7 @@ func main() {
 	start := time.Now()
 	for _, r := range requests {
 		<-burst // wait for a token
-		fmt.Printf("request %d at +%3dms\n", r, time.Since(start).Round(10*time.Millisecond).Milliseconds())
+		ms := time.Since(start).Round(10 * time.Millisecond).Milliseconds()
+		fmt.Printf("request %d at +%3dms\n", r, ms)
 	}
 }

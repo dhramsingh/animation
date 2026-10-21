@@ -18,7 +18,8 @@ func flaky() error { // fails twice, then succeeds
 	return nil
 }
 
-func retry(ctx context.Context, attempts int, base time.Duration, f func() error) error {
+func retry(ctx context.Context, attempts int, base time.Duration,
+	f func() error) error {
 	var err error
 	for i := range attempts {
 		if err = f(); err == nil {
@@ -26,7 +27,8 @@ func retry(ctx context.Context, attempts int, base time.Duration, f func() error
 		}
 		// exponential backoff with "full jitter"
 		wait := time.Duration(rand.Int64N(int64(base << i)))
-		fmt.Printf("attempt %d failed (%v); retry in %v\n", i+1, err, wait.Round(time.Millisecond))
+		fmt.Printf("attempt %d failed (%v); retry in %v\n",
+			i+1, err, wait.Round(time.Millisecond))
 		select {
 		case <-time.After(wait):
 		case <-ctx.Done():

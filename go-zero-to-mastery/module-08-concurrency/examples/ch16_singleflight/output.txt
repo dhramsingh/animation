@@ -1,0 +1,4 @@
+$ go run .
+requests:      10
+backend calls: 1
+shared result: 10

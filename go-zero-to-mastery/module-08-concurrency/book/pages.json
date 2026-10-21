@@ -148,7 +148,15 @@
   "C15Semaphore": 146,
   "C15Ordered": 147,
   "C15Choose": 148,
-  "C15Recap": 149
+  "C15Recap": 149,
+  "C16Opener": 150,
+  "C16RateLimit": 151,
+  "C16PubSub": 152,
+  "C16Shutdown": 153,
+  "C16Retry": 154,
+  "C16Singleflight": 155,
+  "C16Errgroup": 156,
+  "C16Recap": 157
  },
  "order": [
   [
@@ -746,6 +754,38 @@
   [
    "ch15_patterns",
    "C15Recap"
+  ],
+  [
+   "ch16_patterns2",
+   "C16Opener"
+  ],
+  [
+   "ch16_patterns2",
+   "C16RateLimit"
+  ],
+  [
+   "ch16_patterns2",
+   "C16PubSub"
+  ],
+  [
+   "ch16_patterns2",
+   "C16Shutdown"
+  ],
+  [
+   "ch16_patterns2",
+   "C16Retry"
+  ],
+  [
+   "ch16_patterns2",
+   "C16Singleflight"
+  ],
+  [
+   "ch16_patterns2",
+   "C16Errgroup"
+  ],
+  [
+   "ch16_patterns2",
+   "C16Recap"
   ]
  ],
  "chapters": {},
@@ -898,7 +938,15 @@
   "C15Semaphore": "Semaphore: at most N at a time",
   "C15Ordered": "Results in order, computed in any order",
   "C15Choose": "Patterns at a glance",
-  "C15Recap": "Recap and check yourself"
+  "C15Recap": "Recap and check yourself",
+  "C16Opener": "C16Opener",
+  "C16RateLimit": "Rate limiting with a token bucket",
+  "C16PubSub": "Publish/subscribe: one sender, many receivers",
+  "C16Shutdown": "Graceful shutdown: stop taking work, finish what's in hand",
+  "C16Retry": "Retries: exponential backoff with jitter",
+  "C16Singleflight": "singleflight: one call for many identical requests",
+  "C16Errgroup": "errgroup with a limit: bounded, cancellable fan-out",
+  "C16Recap": "Recap and check yourself"
  },
- "count": 149
+ "count": 157
 }

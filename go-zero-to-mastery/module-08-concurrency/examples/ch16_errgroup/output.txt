@@ -1,0 +1,10 @@
+$ go run .
++ 20ms page 1: <nil>
++ 40ms page 2: <nil>
++ 60ms page 3: <nil>
++100ms page 4: 500 internal server error
++100ms page 7: context canceled
++100ms page 8: context canceled
++100ms page 5: context canceled
++100ms page 6: context canceled
+g.Wait(): 500 internal server error
