@@ -1,0 +1,46 @@
+$ go run -race .
+prod
+==================
+WARNING: DATA RACE
+Read at 0x0000005ebc00 by goroutine 11:
+  main.get()
+      ./main.go:18 +0x27
+  main.main.func1()
+      ./main.go:31 +0x1c
+
+Previous write at 0x0000005ebc00 by goroutine 10:
+  main.get()
+      ./main.go:21 +0xa7
+  main.main.func1()
+      ./main.go:31 +0x1c
+
+Goroutine 11 (running) created at:
+  sync.(*WaitGroup).Go()
+      $GOROOT/src/sync/waitgroup.go:238 +0x72
+
+Goroutine 10 (finished) created at:
+  sync.(*WaitGroup).Go()
+      $GOROOT/src/sync/waitgroup.go:238 +0x72
+==================
+==================
+WARNING: DATA RACE
+Read at 0x00c000126020 by goroutine 9:
+  main.main.func1()
+      ./main.go:31 +0x24
+
+Previous write at 0x00c000126020 by goroutine 10:
+  main.get()
+      ./main.go:21 +0x70
+  main.main.func1()
+      ./main.go:31 +0x1c
+
+Goroutine 9 (running) created at:
+  sync.(*WaitGroup).Go()
+      $GOROOT/src/sync/waitgroup.go:238 +0x72
+
+Goroutine 10 (finished) created at:
+  sync.(*WaitGroup).Go()
+      $GOROOT/src/sync/waitgroup.go:238 +0x72
+==================
+Found 2 data race(s)
+exit status 66

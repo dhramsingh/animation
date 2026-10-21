@@ -246,8 +246,8 @@ class C1CPUBound(Page):
                          (rbox(0.3, 0.2, color=T.GO, fill=T.GO), "measured")], size=13)
         self.at(lg, x0 - 0.45, base_y - 0.68)
         notes = bullets([(badge("1", T.YELLOW, r=0.12, size=12), "each worker writes only its own slot `counts[w]`, so no lock is needed"),
-                         f"Ideal is 4x; this cloud VM reached **{data[-1]:.2f}x**. While it ran, `vmstat` showed all four vCPUs about 99% busy, so the goroutines really were parallel.",
-                         "A cloud vCPU is often a **hyperthread**: two vCPUs share one physical core's execution units, so four vCPUs can behave like two cores."],
+                         f"Ideal is 4x; this cloud VM reached **{data[-1]:.2f}x**: nearly linear, because the work splits evenly and the workers share nothing.",
+                         "Speed-up depends on what else runs: an earlier run of this very program, with two stray busy loops on the same VM, stalled at about **2x**."],
                         width=X1 - x0 + 0.45, size=13, gap=0.07)
         self.at(notes, x0 - 0.45, lg.get_bottom()[1] - 0.12)
         k = callout("key", "Parallel speed-up is a property of the **hardware** you run on. Measure it; never assume it.",

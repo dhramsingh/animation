@@ -1,6 +1,6 @@
 $ go run .
-cap 0      221 ns per value
-cap 1      179 ns per value
-cap 8       90 ns per value
-cap 64      64 ns per value
-cap 512     65 ns per value
+cap 0      242 ns per value
+cap 1      186 ns per value
+cap 8       95 ns per value
+cap 64      65 ns per value
+cap 512     60 ns per value

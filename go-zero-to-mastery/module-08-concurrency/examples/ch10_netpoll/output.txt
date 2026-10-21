@@ -1,4 +1,4 @@
 $ go run .
 open connections: 2000
 goroutines:       2002
-OS threads:       7
+OS threads:       8

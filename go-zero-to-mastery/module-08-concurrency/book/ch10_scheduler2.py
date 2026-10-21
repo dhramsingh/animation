@@ -216,8 +216,9 @@ class C10Netpoll(Page):
         tm = terminal(out("ch10_netpoll"), title="measured", width=w, size=14)
         self.at(tm, x, Y0 - 3.15)
         thr = nums("ch10_netpoll", r"OS threads:\s+(\d+)", int)[0]
+        sys_thr = nums("ch10_syscall_threads", r"OS threads = (\d+)", int)[-1]
         k = callout("key", f"2,000 open connections and 2,002 goroutines needed only **{thr} OS threads**. "
-                    "Compare 50 blocking syscalls → 53 threads on the previous page.", width=w, size=14)
+                    f"Compare 50 blocking syscalls → {sys_thr} threads on the previous page.", width=w, size=14)
         self.at(k, x, tm.get_bottom()[1] - 0.2)
 
 

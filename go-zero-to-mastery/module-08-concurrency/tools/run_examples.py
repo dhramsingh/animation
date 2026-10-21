@@ -17,6 +17,7 @@ from __future__ import annotations
 import os
 import re
 import shlex
+import signal
 import subprocess
 import sys
 import time
@@ -86,13 +87,19 @@ def run_one(d: Path):
     shown = (shown_env + " " + shown).strip()
     t0 = time.time()
     timed_out = False
+    # Run in its own process group so a timeout kills the program itself,
+    # not just the `go run` wrapper (an orphaned busy loop would skew every
+    # later timing measurement).
+    proc = subprocess.Popen(cmd, cwd=d, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            text=True, start_new_session=True)
     try:
-        r = subprocess.run(cmd, cwd=d, env=env, capture_output=True, text=True, timeout=timeout)
-        text = r.stdout + r.stderr
-        code = r.returncode
-    except subprocess.TimeoutExpired as e:
-        text = (e.stdout or b"").decode() if isinstance(e.stdout, bytes) else (e.stdout or "")
-        text += (e.stderr or b"").decode() if isinstance(e.stderr, bytes) else (e.stderr or "")
+        so, se = proc.communicate(timeout=timeout)
+        text = so + se
+        code = proc.returncode
+    except subprocess.TimeoutExpired:
+        os.killpg(proc.pid, signal.SIGKILL)
+        so, se = proc.communicate()
+        text = (so or "") + (se or "")
         text += f"^C   (killed after {timeout:.0f}s: the program never finished)\n"
         code = -1
         timed_out = True

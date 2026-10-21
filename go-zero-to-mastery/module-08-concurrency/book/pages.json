@@ -113,7 +113,21 @@
   "C12Pool": 111,
   "C12Map": 112,
   "C12Choose": 113,
-  "C12Recap": 114
+  "C12Recap": 114,
+  "C13Opener": 115,
+  "C13Reorder": 116,
+  "C13Litmus": 117,
+  "C13HB": 118,
+  "C13SyncChan": 119,
+  "C13SyncMore": 120,
+  "C13Race": 121,
+  "C13Torn": 122,
+  "C13BusyWait": 123,
+  "C13DCL": 124,
+  "C13Detector": 125,
+  "C13Report": 126,
+  "C13Habits": 127,
+  "C13Recap": 128
  },
  "order": [
   [
@@ -571,6 +585,62 @@
   [
    "ch12_sync",
    "C12Recap"
+  ],
+  [
+   "ch13_memory",
+   "C13Opener"
+  ],
+  [
+   "ch13_memory",
+   "C13Reorder"
+  ],
+  [
+   "ch13_memory",
+   "C13Litmus"
+  ],
+  [
+   "ch13_memory",
+   "C13HB"
+  ],
+  [
+   "ch13_memory",
+   "C13SyncChan"
+  ],
+  [
+   "ch13_memory",
+   "C13SyncMore"
+  ],
+  [
+   "ch13_memory",
+   "C13Race"
+  ],
+  [
+   "ch13_memory",
+   "C13Torn"
+  ],
+  [
+   "ch13_memory",
+   "C13BusyWait"
+  ],
+  [
+   "ch13_memory",
+   "C13DCL"
+  ],
+  [
+   "ch13_memory",
+   "C13Detector"
+  ],
+  [
+   "ch13_memory",
+   "C13Report"
+  ],
+  [
+   "ch13_memory",
+   "C13Habits"
+  ],
+  [
+   "ch13_memory",
+   "C13Recap"
   ]
  ],
  "chapters": {},
@@ -688,7 +758,21 @@
   "C12Pool": "sync.Pool: recycle temporary objects",
   "C12Map": "sync.Map: a concurrent map for two special cases",
   "C12Choose": "Choosing: channel, mutex, atomic or something else?",
-  "C12Recap": "Recap and check yourself"
+  "C12Recap": "Recap and check yourself",
+  "C13Opener": "C13Opener",
+  "C13Reorder": "Memory is not one shared whiteboard",
+  "C13Litmus": "Measured: an outcome no interleaving can explain",
+  "C13HB": "Happens before: the only order you can rely on",
+  "C13SyncChan": "Synchronizing edges (1): goroutines and channels",
+  "C13SyncMore": "Synchronizing edges (2): locks, Once, atomics and friends",
+  "C13Race": "What a data race is, and what Go still promises",
+  "C13Torn": "Measured: torn reads of a slice header",
+  "C13BusyWait": "Broken idiom 1: spinning on a plain flag",
+  "C13DCL": "Broken idiom 2: double-checked locking",
+  "C13Detector": "The race detector: -race",
+  "C13Report": "Reading a race report",
+  "C13Habits": "Race-free by habit: common races and their fixes",
+  "C13Recap": "Recap and check yourself"
  },
- "count": 114
+ "count": 128
 }

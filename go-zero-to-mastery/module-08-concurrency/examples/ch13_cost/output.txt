@@ -1,0 +1,2 @@
+$ go run .
+time: 152ms   peak memory: 24872 kB

@@ -1,4 +1,4 @@
 $ go run .
-attempt 1 failed (503 unavailable); retry in 29ms
-attempt 2 failed (503 unavailable); retry in 6ms
+attempt 1 failed (503 unavailable); retry in 46ms
+attempt 2 failed (503 unavailable); retry in 96ms
 result: <nil> after 3 calls

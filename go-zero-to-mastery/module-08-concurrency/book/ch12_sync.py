@@ -294,9 +294,9 @@ class C12RWMutex(Page):
         self.at(tbl, X0, cd.get_bottom()[1] - 0.18)
         b = _bench()
         mr, rr = b["MutexRead"][1], b["RWMutexRead"][1]
-        k = callout("note", f"Measured on 4 cores, tiny critical section (one map read): Mutex {mr:.1f} ns, "
-                    f"RWMutex {rr:.1f} ns per read. RLock is an atomic add on a shared counter, so the cache line "
-                    f"still bounces between cores. RWMutex pays off when reads dominate **and** take a while.",
+        k = callout("note", f"4 goroutines on 4 cores, tiny critical section (one map read): Mutex {mr:.1f} ns, "
+                    f"RWMutex {rr:.1f} ns per read. Readers overlap, but every RLock still does an atomic add on one "
+                    f"shared counter, so the gain is far from 4×. It grows when reads dominate **and** take a while.",
                     width=w, size=12, title="IS IT FASTER?")
         self.at(k, X0, tbl.get_bottom()[1] - 0.18)
 
@@ -546,7 +546,8 @@ class C12Bench(Page):
             "LOCK XADD, never a sleep.",
             f"**A channel is the slowest counter** ({c[1]:.1f} ns): every increment is a send that the owner "
             "goroutine must receive. Channels are for moving work and data, not for bumping a number.",
-            "**RWMutex barely helps** for a nanosecond-long read: RLock itself writes a shared counter.",
+            f"**RWMutex reads overlap**: {b['RWMutexRead'][1]:.1f} vs {b['MutexRead'][1]:.1f} ns. Not 4× better: "
+            "every RLock still writes one shared counter.",
             f"Even the slowest here is about {c[1]:.0f} ns. Pick the clearest tool first, measure, then optimise.",
         ], width=ww, size=14, gap=0.14, marker="arrow", marker_color=T.YELLOW)
         self.at(pts, x, Y0)

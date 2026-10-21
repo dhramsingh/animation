@@ -1,0 +1,2 @@
+$ go run -race .
+time: 1.072s   peak memory: 85588 kB

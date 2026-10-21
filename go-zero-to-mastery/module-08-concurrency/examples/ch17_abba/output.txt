@@ -4,7 +4,7 @@ fatal error: all goroutines are asleep - deadlock!
 goroutine 1 [sync.WaitGroup.Wait]:
 sync.runtime_SemacquireWaitGroup(0x563350?, 0x78?)
 	$GOROOT/src/runtime/sema.go:114 +0x2e
-sync.(*WaitGroup).Wait(0x2b1ae7ef8110)
+sync.(*WaitGroup).Wait(0x2e0c28976100)
 	$GOROOT/src/sync/waitgroup.go:206 +0x85
 main.main()
 	./main.go:24 +0x115
@@ -12,7 +12,7 @@ main.main()
 goroutine 7 [sync.Mutex.Lock]:
 internal/sync.runtime_SemacquireMutex(0x0?, 0x0?, 0x0?)
 	$GOROOT/src/runtime/sema.go:95 +0x25
-internal/sync.(*Mutex).lockSlow(0x2b1ae7ef8108)
+internal/sync.(*Mutex).lockSlow(0x2e0c289760f8)
 	$GOROOT/src/internal/sync/mutex.go:149 +0x15a
 internal/sync.(*Mutex).Lock(...)
 	$GOROOT/src/internal/sync/mutex.go:70
@@ -28,7 +28,7 @@ created by sync.(*WaitGroup).Go in goroutine 1
 goroutine 8 [sync.Mutex.Lock]:
 internal/sync.runtime_SemacquireMutex(0x0?, 0x0?, 0x0?)
 	$GOROOT/src/runtime/sema.go:95 +0x25
-internal/sync.(*Mutex).lockSlow(0x2b1ae7ef8100)
+internal/sync.(*Mutex).lockSlow(0x2e0c289760f0)
 	$GOROOT/src/internal/sync/mutex.go:149 +0x15a
 internal/sync.(*Mutex).Lock(...)
 	$GOROOT/src/internal/sync/mutex.go:70

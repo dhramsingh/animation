@@ -3,15 +3,15 @@ goos: linux
 goarch: amd64
 pkg: gozm/module08/ch12_bench
 cpu: Intel(R) Xeon(R) Processor @ 2.10GHz
-BenchmarkMutexInc        	64991028	        18.90 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMutexInc-4      	26727086	        46.05 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAtomicInc       	100000000	        10.20 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAtomicInc-4     	65999869	        19.45 ns/op	       0 B/op	       0 allocs/op
-BenchmarkChannelInc      	23986682	        53.71 ns/op	       0 B/op	       0 allocs/op
-BenchmarkChannelInc-4    	21109402	        62.10 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMutexRead       	60830990	        20.04 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMutexRead-4     	22949577	        47.69 ns/op	       0 B/op	       0 allocs/op
-BenchmarkRWMutexRead     	60469466	        18.63 ns/op	       0 B/op	       0 allocs/op
-BenchmarkRWMutexRead-4   	29223537	        39.26 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMutexInc        	55501605	        19.50 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMutexInc-4      	15800793	        70.61 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAtomicInc       	100000000	        10.01 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAtomicInc-4     	51370045	        23.05 ns/op	       0 B/op	       0 allocs/op
+BenchmarkChannelInc      	23152375	        50.77 ns/op	       0 B/op	       0 allocs/op
+BenchmarkChannelInc-4    	11504548	        87.21 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMutexRead       	65088512	        18.84 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMutexRead-4     	16132294	        69.84 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRWMutexRead     	54237088	        18.93 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRWMutexRead-4   	26994308	        46.58 ns/op	       0 B/op	       0 allocs/op
 PASS
-ok  	gozm/module08/ch12_bench	12.349s
+ok  	gozm/module08/ch12_bench	11.678s

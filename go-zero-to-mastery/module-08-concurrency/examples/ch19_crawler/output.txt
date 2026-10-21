@@ -2,20 +2,21 @@ $ go run .
 crawl with a 2s budget:
   depth 0  /           3 links
   depth 1  /docs       2 links
-  depth 1  /go         3 links
   depth 1  /blog       3 links
+  depth 1  /go         3 links
   depth 2  /go/chan    1 links
   depth 2  /docs/mem   1 links
-  depth 2  /go/select  0 links
   depth 2  /blog/1     1 links
   depth 2  /blog/2     1 links
+  depth 2  /go/select  0 links
   depth 3  /missing    404 not found
-  => 10 pages in 110ms
+  => 10 pages in 100ms
 crawl with a 50ms budget:
   depth 0  /           3 links
   depth 1  /docs       2 links
-  depth 1  /go         context deadline exceeded
-  depth 2  /docs/mem   context deadline exceeded
-  depth 2  /go/chan    context deadline exceeded
+  depth 1  /go         3 links
   depth 1  /blog       context deadline exceeded
-  => 6 pages in 50ms
+  depth 2  /docs/mem   context deadline exceeded
+  depth 2  /go/select  context deadline exceeded
+  depth 2  /go/chan    context deadline exceeded
+  => 7 pages in 50ms

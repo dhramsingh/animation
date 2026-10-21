@@ -1,7 +1,7 @@
 $ go build -o app .
 $ GODEBUG=schedtrace=100 ./app
-SCHED 0ms: gomaxprocs=4 idleprocs=2 threads=6 spinningthreads=1 needspinning=0 idlethreads=3 runqueue=0 [ 0 0 0 0 ] schedticks=[ 3 0 0 1 ]
-SCHED 100ms: gomaxprocs=4 idleprocs=0 threads=6 spinningthreads=0 needspinning=1 idlethreads=1 runqueue=3 [ 3 1 1 0 ] schedticks=[ 6 3 3 4 ]
-SCHED 201ms: gomaxprocs=4 idleprocs=0 threads=6 spinningthreads=0 needspinning=1 idlethreads=1 runqueue=6 [ 0 1 0 1 ] schedticks=[ 11 8 8 9 ]
-SCHED 302ms: gomaxprocs=4 idleprocs=0 threads=6 spinningthreads=0 needspinning=1 idlethreads=1 runqueue=6 [ 1 0 0 1 ] schedticks=[ 16 13 13 14 ]
-SCHED 412ms: gomaxprocs=4 idleprocs=4 threads=6 spinningthreads=0 needspinning=0 idlethreads=4 runqueue=0 [ 0 0 0 0 ] schedticks=[ 19 21 17 16 ]
+SCHED 0ms: gomaxprocs=4 idleprocs=2 threads=5 spinningthreads=1 needspinning=0 idlethreads=2 runqueue=0 [ 0 0 0 0 ] schedticks=[ 1 0 0 2 ]
+SCHED 100ms: gomaxprocs=4 idleprocs=0 threads=5 spinningthreads=0 needspinning=1 idlethreads=0 runqueue=8 [ 0 0 0 0 ] schedticks=[ 4 3 3 5 ]
+SCHED 201ms: gomaxprocs=4 idleprocs=0 threads=5 spinningthreads=0 needspinning=1 idlethreads=0 runqueue=5 [ 0 2 1 0 ] schedticks=[ 9 8 8 10 ]
+SCHED 302ms: gomaxprocs=4 idleprocs=0 threads=5 spinningthreads=0 needspinning=1 idlethreads=0 runqueue=2 [ 1 1 0 1 ] schedticks=[ 17 13 13 15 ]
+SCHED 403ms: gomaxprocs=4 idleprocs=4 threads=5 spinningthreads=0 needspinning=0 idlethreads=3 runqueue=0 [ 0 0 0 0 ] schedticks=[ 19 15 17 19 ]

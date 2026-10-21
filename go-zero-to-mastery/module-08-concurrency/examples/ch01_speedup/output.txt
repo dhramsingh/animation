@@ -1,6 +1,6 @@
 $ go run .
 CPUs: 4
-GOMAXPROCS=1  primes=216816  time=1.159s  speedup=1.00x
-GOMAXPROCS=2  primes=216816  time=585ms   speedup=1.98x
-GOMAXPROCS=3  primes=216816  time=595ms   speedup=1.95x
-GOMAXPROCS=4  primes=216816  time=587ms   speedup=1.97x
+GOMAXPROCS=1  primes=216816  time=1.101s  speedup=1.00x
+GOMAXPROCS=2  primes=216816  time=573ms   speedup=1.92x
+GOMAXPROCS=3  primes=216816  time=375ms   speedup=2.93x
+GOMAXPROCS=4  primes=216816  time=287ms   speedup=3.83x

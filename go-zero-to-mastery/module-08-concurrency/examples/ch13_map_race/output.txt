@@ -1,0 +1,13 @@
+$ go run .
+fatal error: concurrent map writes
+
+goroutine 6 [running]:
+internal/runtime/maps.fatal({0x48180c?, 0x0?})
+	$GOROOT/src/runtime/panic.go:1195 +0x18
+main.main.func1()
+	./main.go:11 +0x38
+sync.(*WaitGroup).Go.func1()
+	$GOROOT/src/sync/waitgroup.go:258 +0x4a
+created by sync.(*WaitGroup).Go in goroutine 1
+	$GOROOT/src/sync/waitgroup.go:238 +0x7d
+exit status 2

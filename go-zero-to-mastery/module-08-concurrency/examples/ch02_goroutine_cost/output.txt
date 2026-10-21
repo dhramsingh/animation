@@ -1,5 +1,5 @@
 $ go run .
 goroutines alive: 100001
-spawn time: 242ms total, 2.419µs per goroutine
-stack memory: 204.8 MB (2047 bytes per goroutine)
-all runtime memory: 275.9 MB (2758 bytes per goroutine)
+spawn time: 244ms total, 2.438µs per goroutine
+stack memory: 204.9 MB (2048 bytes per goroutine)
+all runtime memory: 276.2 MB (2762 bytes per goroutine)

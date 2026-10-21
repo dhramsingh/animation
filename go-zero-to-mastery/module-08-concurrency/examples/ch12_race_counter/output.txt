@@ -1,2 +1,2 @@
 $ go run .
-expected 1000000, got 987603
+expected 1000000, got 741983

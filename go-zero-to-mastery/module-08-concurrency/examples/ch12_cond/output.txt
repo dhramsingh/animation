@@ -1,5 +1,5 @@
 $ go run .
 GO! (Broadcast)
 runner 2 starts
-runner 3 starts
 runner 1 starts
+runner 3 starts

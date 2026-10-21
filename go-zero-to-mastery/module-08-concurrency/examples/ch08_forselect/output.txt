@@ -1,8 +1,8 @@
 $ go run .
 did job 1
 did job 2
-heartbeat
 did job 3
+heartbeat
 heartbeat
 heartbeat
 told to stop: exit

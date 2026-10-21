@@ -25,7 +25,8 @@ class C2Opener(Opener):
              "Compare the 1:1, N:1 and M:N threading models",
              "Read the runtime's g structure and see why a switch is cheap",
              "Estimate how many goroutines a server can afford"]
-    QUESTION = "A goroutine and a thread both run a function on their own stack. Where does the 40x difference in switching cost come from?"
+    QUESTION = ("A goroutine and a thread both run a function on their own stack. Where does the "
+                f"{_costs()['t_switch_us'] * 1000 / _costs()['g_switch_ns']:.0f}x difference in switching cost come from?")
 
     def art(self):
         c = _costs()

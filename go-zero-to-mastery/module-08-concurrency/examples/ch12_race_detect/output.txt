@@ -2,19 +2,19 @@ $ go run -race .
 balance: 130
 ==================
 WARNING: DATA RACE
-Read at 0x00c00011c028 by goroutine 8:
-  main.main.func1()
-      ./main.go:11 +0x2e
-
-Previous write at 0x00c00011c028 by goroutine 9:
+Read at 0x00c00009c028 by goroutine 9:
   main.main.func2()
-      ./main.go:12 +0x44
+      ./main.go:12 +0x2e
 
-Goroutine 8 (running) created at:
+Previous write at 0x00c00009c028 by goroutine 8:
+  main.main.func1()
+      ./main.go:11 +0x44
+
+Goroutine 9 (running) created at:
   sync.(*WaitGroup).Go()
       $GOROOT/src/sync/waitgroup.go:238 +0x72
 
-Goroutine 9 (finished) created at:
+Goroutine 8 (finished) created at:
   sync.(*WaitGroup).Go()
       $GOROOT/src/sync/waitgroup.go:238 +0x72
 ==================

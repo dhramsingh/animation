@@ -1,0 +1,2 @@
+$ go run .
+torn reads: 3345202 of 10,000,000

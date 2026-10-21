@@ -1,5 +1,5 @@
 $ go run .
 size of struct{}: 0 bytes
-reader 1 sees config = loaded
 reader 2 sees config = loaded
+reader 1 sees config = loaded
 reader 3 sees config = loaded

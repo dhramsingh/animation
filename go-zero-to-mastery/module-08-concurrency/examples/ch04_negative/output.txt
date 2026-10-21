@@ -2,7 +2,7 @@ $ go run .
 panic: sync: negative WaitGroup counter
 
 goroutine 1 [running]:
-sync.(*WaitGroup).Add(0x2a9d8d8260e0, 0xffffffffffffffff)
+sync.(*WaitGroup).Add(0x6ff263cc0e0, 0xffffffffffffffff)
 	$GOROOT/src/sync/waitgroup.go:118 +0x23a
 sync.(*WaitGroup).Done(...)
 	$GOROOT/src/sync/waitgroup.go:156

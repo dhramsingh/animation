@@ -3,9 +3,9 @@ worker 1 done
 fatal error: all goroutines are asleep - deadlock!
 
 goroutine 1 [sync.WaitGroup.Wait]:
-sync.runtime_SemacquireWaitGroup(0x18d23129a000?, 0xe0?)
+sync.runtime_SemacquireWaitGroup(0xde9e6aae000?, 0xe0?)
 	$GOROOT/src/runtime/sema.go:114 +0x2e
-sync.(*WaitGroup).Wait(0x18d231286020)
+sync.(*WaitGroup).Wait(0xde9e6a9c020)
 	$GOROOT/src/sync/waitgroup.go:206 +0x85
 main.main()
 	./main.go:18 +0x8f
