@@ -1,0 +1,42 @@
+$ go run .
+goroutine 1 [running]:
+runtime/pprof.writeGoroutineStacks({0x5e5588, 0x39a953f02030})
+	$GOROOT/src/runtime/pprof/pprof.go:816 +0x69
+runtime/pprof.writeGoroutine({0x5e5588?, 0x39a953f02030?}, 0x408975?)
+	$GOROOT/src/runtime/pprof/pprof.go:779 +0x25
+runtime/pprof.(*Profile).WriteTo(0x4df856?, {0x5e5588?, 0x39a953f02030?}, 0x39a953f26148?)
+	$GOROOT/src/runtime/pprof/pprof.go:405 +0x149
+main.main()
+	./main.go:22 +0x15d
+
+goroutine 7 [chan receive]:
+main.main.func1()
+	./main.go:15 +0x19
+created by main.main in goroutine 1
+	./main.go:15 +0x70
+
+goroutine 8 [chan receive]:
+main.main.func1()
+	./main.go:15 +0x19
+created by main.main in goroutine 1
+	./main.go:15 +0x70
+
+goroutine 9 [sync.Mutex.Lock]:
+internal/sync.runtime_SemacquireMutex(0x0?, 0x0?, 0x0?)
+	$GOROOT/src/runtime/sema.go:95 +0x25
+internal/sync.(*Mutex).lockSlow(0x39a953f120f0)
+	$GOROOT/src/internal/sync/mutex.go:149 +0x15a
+internal/sync.(*Mutex).Lock(...)
+	$GOROOT/src/internal/sync/mutex.go:70
+sync.(*Mutex).Lock(...)
+	$GOROOT/src/sync/mutex.go:46
+main.main.func2()
+	./main.go:17 +0x2c
+created by main.main in goroutine 1
+	./main.go:17 +0x116
+
+goroutine 10 [sleep]:
+time.Sleep(0x34630b8a000)
+	$GOROOT/src/runtime/time.go:368 +0x165
+created by main.main in goroutine 1
+	./main.go:18 +0x125

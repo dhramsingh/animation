@@ -156,7 +156,16 @@
   "C16Retry": 154,
   "C16Singleflight": 155,
   "C16Errgroup": 156,
-  "C16Recap": 157
+  "C16Recap": 157,
+  "C17Opener": 158,
+  "C17Leak": 159,
+  "C17Causes": 160,
+  "C17LeakProfile": 161,
+  "C17Deadlock": 162,
+  "C17Dump": 163,
+  "C17Profiles": 164,
+  "C17Guide": 165,
+  "C17Recap": 166
  },
  "order": [
   [
@@ -786,6 +795,42 @@
   [
    "ch16_patterns2",
    "C16Recap"
+  ],
+  [
+   "ch17_debugging",
+   "C17Opener"
+  ],
+  [
+   "ch17_debugging",
+   "C17Leak"
+  ],
+  [
+   "ch17_debugging",
+   "C17Causes"
+  ],
+  [
+   "ch17_debugging",
+   "C17LeakProfile"
+  ],
+  [
+   "ch17_debugging",
+   "C17Deadlock"
+  ],
+  [
+   "ch17_debugging",
+   "C17Dump"
+  ],
+  [
+   "ch17_debugging",
+   "C17Profiles"
+  ],
+  [
+   "ch17_debugging",
+   "C17Guide"
+  ],
+  [
+   "ch17_debugging",
+   "C17Recap"
   ]
  ],
  "chapters": {},
@@ -946,7 +991,16 @@
   "C16Retry": "Retries: exponential backoff with jitter",
   "C16Singleflight": "singleflight: one call for many identical requests",
   "C16Errgroup": "errgroup with a limit: bounded, cancellable fan-out",
-  "C16Recap": "Recap and check yourself"
+  "C16Recap": "Recap and check yourself",
+  "C17Opener": "C17Opener",
+  "C17Leak": "A goroutine leak in 20 lines",
+  "C17Causes": "Five ways goroutines leak",
+  "C17LeakProfile": "Finding leaks: the goroutineleak profile",
+  "C17Deadlock": "Deadlocks: a cycle of waiting",
+  "C17Dump": "Reading a goroutine dump",
+  "C17Profiles": "Profiles and traces for concurrent programs",
+  "C17Guide": "Field guide: symptom \u2192 cause \u2192 fix",
+  "C17Recap": "Recap and check yourself"
  },
- "count": 157
+ "count": 166
 }
