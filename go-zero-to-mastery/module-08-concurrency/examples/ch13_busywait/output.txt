@@ -1,0 +1,18 @@
+$ go run -race .
+finished
+==================
+WARNING: DATA RACE
+Write at 0x00000060a048 by goroutine 8:
+  main.main.func1()
+      ./main.go:13 +0x30
+
+Previous read at 0x00000060a048 by main goroutine:
+  main.main()
+      ./main.go:15 +0x33
+
+Goroutine 8 (running) created at:
+  main.main()
+      ./main.go:11 +0x27
+==================
+Found 1 data race(s)
+exit status 66

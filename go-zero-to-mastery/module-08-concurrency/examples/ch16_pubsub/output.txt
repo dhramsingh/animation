@@ -1,0 +1,5 @@
+$ go run .
+subscriber 2 got "deploy started"
+subscriber 2 got "deploy finished"
+subscriber 1 got "deploy started"
+subscriber 1 got "deploy finished"

@@ -1,0 +1,9 @@
+$ go test -bench=. -benchmem
+goos: linux
+goarch: amd64
+pkg: gozm/module08/ch12_pool
+cpu: Intel(R) Xeon(R) Processor @ 2.10GHz
+BenchmarkNewBuffer-4      	  653533	      1669 ns/op	    1984 B/op	       5 allocs/op
+BenchmarkPooledBuffer-4   	 2764376	       395.5 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	gozm/module08/ch12_pool	2.195s

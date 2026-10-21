@@ -1,0 +1,3 @@
+$ go run .
+handling request 7f3a-91c2
+background has an id: false

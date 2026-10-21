@@ -1,0 +1,5 @@
+$ go run .
+logical CPUs (NumCPU): 4
+Ps (GOMAXPROCS):       4
+changed from 4 to 2
+default again: 4

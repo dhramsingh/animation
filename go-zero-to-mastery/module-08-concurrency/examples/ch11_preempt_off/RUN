@@ -1,0 +1,1 @@
+GOMAXPROCS=1 GODEBUG=asyncpreemptoff=1 timeout=4s

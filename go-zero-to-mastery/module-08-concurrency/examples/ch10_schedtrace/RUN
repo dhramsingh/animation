@@ -1,0 +1,1 @@
+mode=exec GODEBUG=schedtrace=100 timeout=10s

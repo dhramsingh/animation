@@ -1,0 +1,2 @@
+$ GOMAXPROCS=1 GODEBUG=asyncpreemptoff=1 go run .
+^C   (killed after 4s: the program never finished)

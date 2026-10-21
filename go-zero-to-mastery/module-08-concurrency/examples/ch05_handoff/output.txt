@@ -1,0 +1,5 @@
+$ go run .
+t=0ms sender:   sending...
+t=300ms receiver: ready
+t=300ms receiver: got "hello"
+t=300ms sender:   send completed

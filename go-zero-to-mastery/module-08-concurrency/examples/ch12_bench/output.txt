@@ -1,0 +1,12 @@
+$ go test -bench=. -benchmem -cpu=4
+goos: linux
+goarch: amd64
+pkg: gozm/module08/ch12_bench
+cpu: Intel(R) Xeon(R) Processor @ 2.10GHz
+BenchmarkMutexInc-4      	25190535	        50.09 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAtomicInc-4     	72898516	        19.20 ns/op	       0 B/op	       0 allocs/op
+BenchmarkChannelInc-4    	17590372	        62.44 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMutexRead-4     	23390088	        48.67 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRWMutexRead-4   	27444036	        42.72 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	gozm/module08/ch12_bench	6.361s

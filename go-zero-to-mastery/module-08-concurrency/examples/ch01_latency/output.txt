@@ -1,0 +1,3 @@
+$ go run .
+sequential: 500ms
+concurrent: 100ms

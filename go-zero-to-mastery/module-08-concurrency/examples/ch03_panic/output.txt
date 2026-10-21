@@ -1,0 +1,9 @@
+$ go run .
+panic: boom in a worker
+
+goroutine 19 [running]:
+main.main.func2()
+	./main.go:16 +0x25
+created by main.main in goroutine 1
+	./main.go:15 +0x3b
+exit status 2

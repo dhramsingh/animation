@@ -1,0 +1,6 @@
+$ go run .
+empty:  len=0 cap=3
+2 sent: len=2 cap=3
+full:   len=3 cap=3 (a 4th send would block)
+recv: a (FIFO: first in, first out)
+now:    len=2 cap=3

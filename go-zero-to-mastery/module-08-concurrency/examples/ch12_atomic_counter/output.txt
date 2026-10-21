@@ -1,0 +1,4 @@
+$ go run .
+expected 1000000, got 1000000
+CAS false->true: true
+CAS false->true: false

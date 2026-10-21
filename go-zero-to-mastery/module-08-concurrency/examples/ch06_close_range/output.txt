@@ -1,0 +1,5 @@
+$ go run .
+got 1
+got 4
+got 9
+after close: v=0 ok=false

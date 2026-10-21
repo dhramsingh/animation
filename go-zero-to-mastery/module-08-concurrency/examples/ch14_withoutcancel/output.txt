@@ -1,0 +1,5 @@
+$ go run .
+request ctx err: context canceled
+audit ctx err:   <nil>
+audit sees value: req-42
+audit log written after the request ended

@@ -1,0 +1,4 @@
+$ go build .
+# gozm/module08/ch05_direction_error
+./main.go:5:8: invalid operation: cannot receive from send-only channel chan<- int out (variable of type chan<- int)
+./main.go:9:2: invalid operation: cannot send to receive-only channel <-chan int in (variable of type <-chan int)

@@ -1,0 +1,4 @@
+$ go run .
+start: 1
+go x10: 11
+closed: 1

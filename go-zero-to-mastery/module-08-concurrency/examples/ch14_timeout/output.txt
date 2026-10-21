@@ -1,0 +1,4 @@
+$ go run .
+fast query: "rows" err=<nil>
+slow query: "" err=context deadline exceeded
+deadline was set: true

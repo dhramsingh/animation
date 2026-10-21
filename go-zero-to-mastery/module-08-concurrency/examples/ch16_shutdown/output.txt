@@ -1,0 +1,11 @@
+$ go run .
+worker 2 finished job 2
+worker 1 finished job 1
+worker 2 finished job 3
+worker 1 finished job 4
+signal received: interrupt signal received
+worker 1 finished job 6
+worker 1: shutting down
+worker 2 finished job 5
+worker 2: shutting down
+clean exit

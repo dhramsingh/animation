@@ -1,0 +1,3 @@
+$ go run .
+goroutines before: 1
+goroutines after:  101

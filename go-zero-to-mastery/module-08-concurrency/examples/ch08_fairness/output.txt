@@ -1,0 +1,3 @@
+$ go run .
+case a chosen: 49929
+case b chosen: 50071

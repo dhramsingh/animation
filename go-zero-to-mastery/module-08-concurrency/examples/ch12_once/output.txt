@@ -1,0 +1,3 @@
+$ go run .
+loading config...
+DSN: postgres://db

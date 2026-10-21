@@ -1,0 +1,4 @@
+$ go run .
+3 squared is 9
+4 squared is 16
+5 squared is 25

@@ -1,0 +1,5 @@
+$ go run .
+queued  event 1
+dropped event 2
+dropped event 3
+handled event 1

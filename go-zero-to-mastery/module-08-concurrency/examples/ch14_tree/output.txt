@@ -1,0 +1,6 @@
+$ go run .
+cancel a  -> a and its child a1 stop; b keeps running
+a            stopped: context canceled
+a1 (child)   stopped: context canceled
+cancel root -> everything left stops
+b            stopped: context canceled

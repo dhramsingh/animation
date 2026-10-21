@@ -1,0 +1,7 @@
+$ go run .
+job 2 ->  1 (worker 2)
+job 3 ->  9 (worker 3)
+job 4 ->  4 (worker 2)
+job 6 ->  1 (worker 2)
+job 1 -> 25 (worker 1)
+job 5 -> 16 (worker 3)

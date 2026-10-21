@@ -1,0 +1,6 @@
+$ go run .
+request 1 at +  0ms
+request 2 at +  0ms
+request 3 at +100ms
+request 4 at +200ms
+request 5 at +300ms

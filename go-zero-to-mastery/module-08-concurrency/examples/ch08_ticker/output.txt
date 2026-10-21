@@ -1,0 +1,6 @@
+$ go run .
+tick at +100ms
+tick at +200ms
+tick at +300ms
+tick at +400ms
+stop

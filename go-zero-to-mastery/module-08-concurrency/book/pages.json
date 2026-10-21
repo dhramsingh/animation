@@ -1,0 +1,412 @@
+{
+ "pages": {
+  "Cover": 1,
+  "HowToRead": 2,
+  "Roadmap": 3,
+  "Outcomes": 4,
+  "C1Opener": 5,
+  "C1Definitions": 6,
+  "C1Quadrant": 7,
+  "C1IOBound": 8,
+  "C1CPUBound": 9,
+  "C1Amdahl": 10,
+  "C1Models": 11,
+  "C1CSP": 12,
+  "C1Toolkit": 13,
+  "C1Recap": 14,
+  "C2Opener": 15,
+  "C2Process": 16,
+  "C2ThreadCost": 17,
+  "C2GoroutineCost": 18,
+  "C2Models": 19,
+  "C2Anatomy": 20,
+  "C2Switch": 21,
+  "C2Scale": 22,
+  "C2Recap": 23,
+  "C3Opener": 24,
+  "C3GoStatement": 25,
+  "C3MainExits": 26,
+  "C3LoopVar": 27,
+  "C3LoopVarFix": 28,
+  "C3Lifecycle": 29,
+  "C3Stacks": 30,
+  "C3NoIdentity": 31,
+  "C3Panics": 32,
+  "C3Recap": 33,
+  "C4Opener": 34,
+  "C4WaitGroup": 35,
+  "C4WgGo": 36,
+  "C4Pitfalls": 37,
+  "C4Results": 38,
+  "C4Errgroup": 39,
+  "C4Choose": 40,
+  "C4Recap": 41,
+  "C5Opener": 42,
+  "C5Syntax": 43,
+  "C5Rendezvous": 44,
+  "C5PingPong": 45,
+  "C5Deadlock": 46,
+  "C5Directions": 47,
+  "C5Values": 48,
+  "C5Signals": 49,
+  "C5Recap": 50,
+  "C6Opener": 51,
+  "C6Buffered": 52,
+  "C6Sizing": 53,
+  "C6Close": 54,
+  "C6Axioms": 55,
+  "C6Panics": 56,
+  "C6WhoCloses": 57,
+  "C6Recap": 58,
+  "C7Opener": 59,
+  "C7Hchan": 60,
+  "C7Ring": 61,
+  "C7Send": 62,
+  "C7Recv": 63,
+  "C7Sudog": 64,
+  "C7Story": 65,
+  "C7Close": 66,
+  "C7Recap": 67
+ },
+ "order": [
+  [
+   "ch00_front",
+   "Cover"
+  ],
+  [
+   "ch00_front",
+   "HowToRead"
+  ],
+  [
+   "ch00_front",
+   "Roadmap"
+  ],
+  [
+   "ch00_front",
+   "Outcomes"
+  ],
+  [
+   "ch01_concurrency",
+   "C1Opener"
+  ],
+  [
+   "ch01_concurrency",
+   "C1Definitions"
+  ],
+  [
+   "ch01_concurrency",
+   "C1Quadrant"
+  ],
+  [
+   "ch01_concurrency",
+   "C1IOBound"
+  ],
+  [
+   "ch01_concurrency",
+   "C1CPUBound"
+  ],
+  [
+   "ch01_concurrency",
+   "C1Amdahl"
+  ],
+  [
+   "ch01_concurrency",
+   "C1Models"
+  ],
+  [
+   "ch01_concurrency",
+   "C1CSP"
+  ],
+  [
+   "ch01_concurrency",
+   "C1Toolkit"
+  ],
+  [
+   "ch01_concurrency",
+   "C1Recap"
+  ],
+  [
+   "ch02_threads",
+   "C2Opener"
+  ],
+  [
+   "ch02_threads",
+   "C2Process"
+  ],
+  [
+   "ch02_threads",
+   "C2ThreadCost"
+  ],
+  [
+   "ch02_threads",
+   "C2GoroutineCost"
+  ],
+  [
+   "ch02_threads",
+   "C2Models"
+  ],
+  [
+   "ch02_threads",
+   "C2Anatomy"
+  ],
+  [
+   "ch02_threads",
+   "C2Switch"
+  ],
+  [
+   "ch02_threads",
+   "C2Scale"
+  ],
+  [
+   "ch02_threads",
+   "C2Recap"
+  ],
+  [
+   "ch03_goroutines",
+   "C3Opener"
+  ],
+  [
+   "ch03_goroutines",
+   "C3GoStatement"
+  ],
+  [
+   "ch03_goroutines",
+   "C3MainExits"
+  ],
+  [
+   "ch03_goroutines",
+   "C3LoopVar"
+  ],
+  [
+   "ch03_goroutines",
+   "C3LoopVarFix"
+  ],
+  [
+   "ch03_goroutines",
+   "C3Lifecycle"
+  ],
+  [
+   "ch03_goroutines",
+   "C3Stacks"
+  ],
+  [
+   "ch03_goroutines",
+   "C3NoIdentity"
+  ],
+  [
+   "ch03_goroutines",
+   "C3Panics"
+  ],
+  [
+   "ch03_goroutines",
+   "C3Recap"
+  ],
+  [
+   "ch04_waiting",
+   "C4Opener"
+  ],
+  [
+   "ch04_waiting",
+   "C4WaitGroup"
+  ],
+  [
+   "ch04_waiting",
+   "C4WgGo"
+  ],
+  [
+   "ch04_waiting",
+   "C4Pitfalls"
+  ],
+  [
+   "ch04_waiting",
+   "C4Results"
+  ],
+  [
+   "ch04_waiting",
+   "C4Errgroup"
+  ],
+  [
+   "ch04_waiting",
+   "C4Choose"
+  ],
+  [
+   "ch04_waiting",
+   "C4Recap"
+  ],
+  [
+   "ch05_channels",
+   "C5Opener"
+  ],
+  [
+   "ch05_channels",
+   "C5Syntax"
+  ],
+  [
+   "ch05_channels",
+   "C5Rendezvous"
+  ],
+  [
+   "ch05_channels",
+   "C5PingPong"
+  ],
+  [
+   "ch05_channels",
+   "C5Deadlock"
+  ],
+  [
+   "ch05_channels",
+   "C5Directions"
+  ],
+  [
+   "ch05_channels",
+   "C5Values"
+  ],
+  [
+   "ch05_channels",
+   "C5Signals"
+  ],
+  [
+   "ch05_channels",
+   "C5Recap"
+  ],
+  [
+   "ch06_buffers",
+   "C6Opener"
+  ],
+  [
+   "ch06_buffers",
+   "C6Buffered"
+  ],
+  [
+   "ch06_buffers",
+   "C6Sizing"
+  ],
+  [
+   "ch06_buffers",
+   "C6Close"
+  ],
+  [
+   "ch06_buffers",
+   "C6Axioms"
+  ],
+  [
+   "ch06_buffers",
+   "C6Panics"
+  ],
+  [
+   "ch06_buffers",
+   "C6WhoCloses"
+  ],
+  [
+   "ch06_buffers",
+   "C6Recap"
+  ],
+  [
+   "ch07_inside",
+   "C7Opener"
+  ],
+  [
+   "ch07_inside",
+   "C7Hchan"
+  ],
+  [
+   "ch07_inside",
+   "C7Ring"
+  ],
+  [
+   "ch07_inside",
+   "C7Send"
+  ],
+  [
+   "ch07_inside",
+   "C7Recv"
+  ],
+  [
+   "ch07_inside",
+   "C7Sudog"
+  ],
+  [
+   "ch07_inside",
+   "C7Story"
+  ],
+  [
+   "ch07_inside",
+   "C7Close"
+  ],
+  [
+   "ch07_inside",
+   "C7Recap"
+  ]
+ ],
+ "chapters": {},
+ "titles": {
+  "Cover": "Cover",
+  "HowToRead": "How to read this book",
+  "Roadmap": "The module at a glance",
+  "Outcomes": "What you will be able to do",
+  "C1Opener": "C1Opener",
+  "C1Definitions": "Two different ideas",
+  "C1Quadrant": "The 2 \u00d7 2 of concurrency and parallelism",
+  "C1IOBound": "I/O-bound work: concurrency hides waiting",
+  "C1CPUBound": "CPU-bound work: only parallelism helps",
+  "C1Amdahl": "Amdahl's law: the serial part sets the ceiling",
+  "C1Models": "Four ways to structure a concurrent program",
+  "C1CSP": "Go's choice: Communicating Sequential Processes",
+  "C1Toolkit": "The toolkit you will master in this module",
+  "C1Recap": "Recap and check yourself",
+  "C2Opener": "C2Opener",
+  "C2Process": "Inside a process",
+  "C2ThreadCost": "What an OS thread really costs",
+  "C2GoroutineCost": "What a goroutine costs (measured)",
+  "C2Models": "Three ways to map tasks onto OS threads",
+  "C2Anatomy": "What a goroutine is made of",
+  "C2Switch": "Why a goroutine switch is cheap",
+  "C2Scale": "Putting it together: cost per unit of concurrency",
+  "C2Recap": "Recap and check yourself",
+  "C3Opener": "C3Opener",
+  "C3GoStatement": "The go statement",
+  "C3MainExits": "When main returns, every goroutine dies",
+  "C3LoopVar": "Closures and the loop variable: Go 1.22 changed the rules",
+  "C3LoopVarFix": "Loop variables: rules you can rely on",
+  "C3Lifecycle": "The life of a goroutine: the runtime's state machine",
+  "C3Stacks": "Growable stacks: start small, double, copy",
+  "C3NoIdentity": "No name, no handle, no kill switch",
+  "C3Panics": "A panic in any goroutine kills the whole program",
+  "C3Recap": "Recap and check yourself",
+  "C4Opener": "C4Opener",
+  "C4WaitGroup": "sync.WaitGroup: a counter you can wait on",
+  "C4WgGo": "Go 1.25: wg.Go does the bookkeeping",
+  "C4Pitfalls": "Four ways to misuse a WaitGroup, and what you see",
+  "C4Results": "Collecting results: three safe shapes",
+  "C4Errgroup": "errgroup: wait, fail fast, cancel the rest",
+  "C4Choose": "Which waiting tool do I need?",
+  "C4Recap": "Recap and check yourself",
+  "C5Opener": "C5Opener",
+  "C5Syntax": "Making, sending and receiving",
+  "C5Rendezvous": "An unbuffered channel is a rendezvous",
+  "C5PingPong": "Ping-pong: two goroutines, one channel",
+  "C5Deadlock": "fatal error: all goroutines are asleep - deadlock!",
+  "C5Directions": "Channel directions: chan<- and <-chan",
+  "C5Values": "Channels are values: a channel of replies",
+  "C5Signals": "Signals: chan struct{} and the close broadcast",
+  "C5Recap": "Recap and check yourself",
+  "C6Opener": "C6Opener",
+  "C6Buffered": "Buffered channels: a queue with a capacity",
+  "C6Sizing": "Unbuffered, size 1 or size N?",
+  "C6Close": "close: no more values are coming",
+  "C6Axioms": "The channel axioms, verified by experiment",
+  "C6Panics": "Why closing can panic",
+  "C6WhoCloses": "Who closes the channel?",
+  "C6Recap": "Recap and check yourself",
+  "C7Opener": "C7Opener",
+  "C7Hchan": "runtime.hchan, field by field",
+  "C7Ring": "The ring buffer, observed live",
+  "C7Send": "chansend: four cases, in order",
+  "C7Recv": "chanrecv: the mirror image, with one twist",
+  "C7Sudog": "Parking: sudog, gopark and goready",
+  "C7Story": "Storyboard: a fast producer meets a slow consumer",
+  "C7Close": "closechan: wake everybody, then step back",
+  "C7Recap": "Recap and check yourself"
+ },
+ "count": 67
+}

@@ -1,0 +1,2 @@
+$ go run .
+tasks: 10, peak concurrency: 3

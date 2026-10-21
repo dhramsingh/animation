@@ -1,0 +1,2 @@
+$ go run .
+[alpha:5 bravo:5 charlie:7 delta:5 echo:4]

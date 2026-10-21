@@ -1,0 +1,6 @@
+$ go run .
+pong hits 1
+ping hits 2
+pong hits 3
+ping hits 4
+pong hits 5

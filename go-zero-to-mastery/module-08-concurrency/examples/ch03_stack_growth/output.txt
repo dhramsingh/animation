@@ -1,0 +1,5 @@
+$ go run .
+depth 10        -> stack in use     0.36 MB
+depth 1000      -> stack in use     0.46 MB
+depth 100000    -> stack in use    17.10 MB
+depth 1000000   -> stack in use   134.55 MB

@@ -1,0 +1,6 @@
+$ go test -v .
+=== RUN   TestExpiry
+    timeout_test.go:22: fake time now: 01:01
+--- PASS: TestExpiry (0.00s)
+PASS
+ok  	gozm/module08/ch18_synctest	0.003s

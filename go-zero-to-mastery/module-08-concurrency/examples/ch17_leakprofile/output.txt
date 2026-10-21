@@ -1,0 +1,6 @@
+$ go run .
+goroutineleak profile: total 3
+3 @ 0x47f06a 0x41421c 0x413e17 0x4e0816 0x484ec1
+#	0x4e0815	main.search.func1+0x35	./main.go:14
+
+leaked goroutines: 3

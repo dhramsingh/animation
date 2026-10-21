@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+examples/**/app
+examples/**/a.out

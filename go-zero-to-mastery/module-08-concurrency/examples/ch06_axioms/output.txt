@@ -1,0 +1,6 @@
+$ go run .
+nil | send: blocks | recv: blocks | close: panic: close of nil channel
+open, empty | send: ok | recv: blocks | close: ok
+open, full | send: blocks | recv: v=7 ok=true | close: ok
+closed, empty | send: panic: send on closed channel | recv: v=0 ok=false | close: panic: close of closed channel
+closed, 1 left | send: panic: send on closed channel | recv: v=7 ok=true | close: panic: close of closed channel

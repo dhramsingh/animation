@@ -1,0 +1,7 @@
+$ go run .
+fetched 1
+fetched 2
+cancelled 4
+cancelled 6
+cancelled 5
+Wait returned: fetch 3: server error

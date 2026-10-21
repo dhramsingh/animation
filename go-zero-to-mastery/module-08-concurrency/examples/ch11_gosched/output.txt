@@ -1,0 +1,2 @@
+$ GOMAXPROCS=1 go run .
+B0 A0 B1 A1 B2 A2 

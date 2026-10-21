@@ -1,0 +1,5 @@
+$ go run .
+received from worker 1
+received from worker 2
+received from worker 3
+total: 3

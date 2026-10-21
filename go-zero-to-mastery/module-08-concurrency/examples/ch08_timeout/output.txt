@@ -1,0 +1,3 @@
+$ go run .
+ok: result after 50ms
+timeout: gave up after 100ms

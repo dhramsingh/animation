@@ -1,0 +1,8 @@
+$ go run .
+make       qcount=0 sendx=0 recvx=0 buf=[0 0 0] closed=0
+send 10    qcount=1 sendx=1 recvx=0 buf=[10 0 0] closed=0
+send 20    qcount=2 sendx=2 recvx=0 buf=[10 20 0] closed=0
+recv       qcount=1 sendx=2 recvx=1 buf=[0 20 0] closed=0
+send 30,40 qcount=3 sendx=1 recvx=1 buf=[40 20 30] closed=0
+recv       qcount=2 sendx=1 recvx=2 buf=[40 0 30] closed=0
+close      qcount=2 sendx=1 recvx=2 buf=[40 0 30] closed=1

@@ -1,0 +1,3 @@
+$ go run .
+goroutine create+exit: 1061 ns
+goroutine switch (channel ping-pong): 236 ns per switch

@@ -1,0 +1,4 @@
+$ go run .
+working...
+AfterFunc: closing the connection
+stop() before cancel: true

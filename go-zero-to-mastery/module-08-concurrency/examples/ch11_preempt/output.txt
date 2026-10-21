@@ -1,0 +1,2 @@
+$ GOMAXPROCS=1 go run .
+main is running again; the loop was preempted

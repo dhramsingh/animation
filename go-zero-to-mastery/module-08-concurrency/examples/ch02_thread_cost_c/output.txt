@@ -1,0 +1,4 @@
+$ ./a.out
+thread create+join: 41.4 us
+default thread stack (virtual): 8192 KB
+thread switch (pipe ping-pong): 10.16 us per switch

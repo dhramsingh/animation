@@ -1,0 +1,7 @@
+$ go run .
+panic: send on closed channel
+
+goroutine 1 [running]:
+main.main()
+	./main.go:6 +0x3a
+exit status 2
